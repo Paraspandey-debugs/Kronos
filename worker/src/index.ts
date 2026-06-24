@@ -11,7 +11,7 @@ const redis = new Redis(process.env.REDIS_URL!, {
 const worker = new Worker(
   'task-queue',
   async (job) => {
-    console.log(`\n Engine B picked up job: ${job.id}`);
+    console.log(`\nEngine B picked up job: ${job.id}`);
     const { taskId, agentType, payload } = job.data;
 
     await updateTaskStatus(taskId, 'RUNNING');
@@ -25,7 +25,7 @@ const worker = new Worker(
       const result = await handler(payload);
 
       await updateTaskStatus(taskId, 'COMPLETED', result);
-      console.log(` Job ${job.id} finished successfully.`);
+      console.log(`Job ${job.id} finished successfully.`);
       
       const step = await prisma.step.findUnique({
         where: { id: taskId },
@@ -42,14 +42,14 @@ const worker = new Worker(
       return result;
     } catch (error: any) {
       await updateTaskStatus(taskId, 'FAILED', null, error.message);
-      console.error(` Job ${job.id} failed:`, error.message);
+      console.error(`Job ${job.id} failed:`, error.message);
       throw error; 
     }
   },
   { connection: redis as any, concurrency: 5 }
 );
 
-console.log(' Engine B is running. Waiting for jobs...');
+console.log('Engine B is running. Waiting for jobs...');
 
 process.on('SIGTERM', async () => {
   await worker.close();

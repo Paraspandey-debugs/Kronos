@@ -3,6 +3,31 @@ import { Worker, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { PrismaClient } from '@prisma/client';
 
+function resolvePayload(payload: any, context: Record<string, any>): any {
+  // Handle string references like "$step_0.field"
+  if (typeof payload === 'string' && payload.startsWith('$')) {
+    const path = payload.slice(1).split('.');
+    let current = context;
+    for (const key of path) {
+      if (current === undefined || current === null) return undefined;
+      current = current[key];
+    }
+    return current;
+  }
+  // Recursively resolve objects
+  if (typeof payload === 'object' && payload !== null) {
+    if (Array.isArray(payload)) {
+      return payload.map(item => resolvePayload(item, context));
+    }
+    const resolved: any = {};
+    for (const [key, value] of Object.entries(payload)) {
+      resolved[key] = resolvePayload(value, context);
+    }
+    return resolved;
+  }
+  return payload;
+}
+
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   maxRetriesPerRequest: null
@@ -12,7 +37,7 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
 const orchestrator = new Worker(
   'workflow-queue',  // Queue name for workflow orchestration
   async (job) => {
-    console.log(`\n Engine A (Orchestrator) picked up: ${job.id}`);
+    console.log(`\nEngine A (Orchestrator) picked up: ${job.id}`);
     const { workflowId } = job.data;
 
     if (job.name === 'continue-workflow' || job.name === 'process-workflow') {
@@ -43,16 +68,27 @@ async function processWorkflow(workflowId: string) {
         where: { id: workflowId },
         data: { status: 'COMPLETED' }
       });
-      console.log(` Workflow ${workflowId} completed!`);
+      console.log(`Workflow ${workflowId} completed!`);
       return { status: 'COMPLETED' };
     }
+
+    // Build context from completed steps
+    const context: Record<string, any> = {};
+    for (const step of workflow.steps) {
+      if (step.status === 'COMPLETED' && step.result) {
+        context[`step_${(step as any).stepIndex}`] = step.result;
+      }
+    }
+
+    // Resolve the payload dynamically
+    const resolvedPayload = resolvePayload(nextStep.payload, context);
 
     // 3. Push this step to the task queue for Engine B (Executor)
     const taskQueue = new Queue('task-queue', { connection: redis as any });
     await taskQueue.add('execute-task', {
       taskId: nextStep.id,
       agentType: nextStep.agentType,
-      payload: nextStep.payload
+      payload: resolvedPayload
     });
 
     // 4. Mark the step as RUNNING
@@ -61,11 +97,11 @@ async function processWorkflow(workflowId: string) {
       data: { status: 'RUNNING' }
     });
 
-    console.log(` Orchestrator pushed step ${nextStep.id} to Executor.`);
+    console.log(`Orchestrator pushed step ${nextStep.id} to Executor.`);
     return { status: 'STEP_QUEUED', stepId: nextStep.id };
 
   } catch (error: any) {
-    console.error(` Orchestrator failed for ${workflowId}:`, error.message);
+    console.error(`Orchestrator failed for ${workflowId}:`, error.message);
     await prisma.workflow.update({
       where: { id: workflowId },
       data: { status: 'FAILED', error: error.message }
@@ -74,7 +110,7 @@ async function processWorkflow(workflowId: string) {
   }
 }
 
-console.log(' Engine A (Orchestrator) is running. Waiting for workflows...');
+console.log('Engine A (Orchestrator) is running. Waiting for workflows...');
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

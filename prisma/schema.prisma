@@ -32,6 +32,7 @@ model Step {
   id         String   @id @default(uuid())
   workflowId String
   workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepIndex  Int
   agentType  String
   payload    Json
   status     String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED

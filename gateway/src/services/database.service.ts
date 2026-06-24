@@ -6,10 +6,11 @@ export const databaseService = {
       data: {
         status: 'PENDING',
         steps: {
-          create: data.steps.map(step => ({
+          create: data.steps.map((step, index) => ({
             agentType: step.agentType,
             payload: step.payload,
-            status: 'PENDING'
+            status: 'PENDING',
+            stepIndex: index
           }))
         }
       },
