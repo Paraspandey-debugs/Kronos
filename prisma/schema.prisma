@@ -1,0 +1,42 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  agentType   String
+  payload     Json
+  priority    String   @default("normal")
+  status      String   @default("PENDING")
+  result      Json?
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Workflow {
+  id        String   @id @default(uuid())
+  status    String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  steps     Step[]
+}
+
+model Step {
+  id         String   @id @default(uuid())
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  agentType  String
+  payload    Json
+  status     String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  result     Json?
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

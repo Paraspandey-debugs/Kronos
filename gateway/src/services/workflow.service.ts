@@ -5,14 +5,15 @@ import { CreateWorkflowRequest } from '../types/workflow.types';
 export const workflowService = {
   createWorkflow: async (data: CreateWorkflowRequest) => {
     // 1. Save to Database
-    const task = await databaseService.createTask(data);
+    const workflow = await databaseService.createWorkflow(data);
     
     // 2. Enqueue for processing
-    await queueService.enqueueTask(task.id, task.payload);
+    await queueService.enqueueWorkflow(workflow.id);
     
     return {
-      taskId: task.id,
-      status: task.status,
+      workflowId: workflow.id,
+      status: workflow.status,
+      steps: workflow.steps.length
     };
   }
 };

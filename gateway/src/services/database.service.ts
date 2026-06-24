@@ -1,20 +1,26 @@
 import { prisma } from '../models';
 
 export const databaseService = {
-  createTask: async (data: { agentType: string; payload: any; priority?: string }) => {
-    return await prisma.task.create({
+  createWorkflow: async (data: { steps: Array<{ agentType: string; payload: any }> }) => {
+    return await prisma.workflow.create({
       data: {
-        agentType: data.agentType,
-        payload: data.payload,
-        priority: data.priority || 'normal',
         status: 'PENDING',
+        steps: {
+          create: data.steps.map(step => ({
+            agentType: step.agentType,
+            payload: step.payload,
+            status: 'PENDING'
+          }))
+        }
       },
+      include: { steps: true }
     });
   },
   
-  getTaskById: async (id: string) => {
-    return await prisma.task.findUnique({
+  getWorkflowById: async (id: string) => {
+    return await prisma.workflow.findUnique({
       where: { id },
+      include: { steps: true }
     });
   }
 };

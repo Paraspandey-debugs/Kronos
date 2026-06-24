@@ -4,7 +4,7 @@ import { config } from './config';
 const PORT = config.PORT;
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Gateway is running on port ${PORT} in ${config.NODE_ENV} mode.`);
+  console.log(` Gateway is running on port ${PORT} in ${config.NODE_ENV} mode.`);
 });
 
 // Handle unhandled promise rejections

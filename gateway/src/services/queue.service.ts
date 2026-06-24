@@ -1,12 +1,12 @@
 import { Queue } from 'bullmq';
 import { redisClient } from '../utils/redis';
 
-export const taskQueue = new Queue('task-queue', { connection: redisClient as any });
+export const workflowQueue = new Queue('workflow-queue', { connection: redisClient as any });
 
 export const queueService = {
-  enqueueTask: async (taskId: string, payload: any) => {
-    return await taskQueue.add('process-task', { taskId, payload }, {
-      jobId: taskId, // Ensure no duplicates
+  enqueueWorkflow: async (workflowId: string) => {
+    return await workflowQueue.add('process-workflow', { workflowId }, {
+      jobId: workflowId, // Ensure no duplicates
       attempts: 3,
       backoff: { type: 'exponential', delay: 1000 },
     });

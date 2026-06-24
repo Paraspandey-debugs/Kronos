@@ -1,0 +1,31 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^5.21.1",
+    "bullmq": "^5.79.1",
+    "dotenv": "^17.4.2",
+    "ioredis": "^5.11.1",
+    "prisma": "^5.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  },
+  "prisma": {
+    "schema": "../prisma/schema.prisma"
+  }
+}
