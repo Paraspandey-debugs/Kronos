@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'http';
 import { Worker, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { prisma, updateTaskStatus } from './services/db.service';
@@ -51,8 +52,25 @@ const worker = new Worker(
 
 console.log('Engine B is running. Waiting for jobs...');
 
+// Health check server for Render
+const port = process.env.PORT || 8081;
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'worker', timestamp: new Date().toISOString() }));
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
+});
+
+server.listen(port, () => {
+  console.log(`Worker health check listening on port ${port}`);
+});
+
 process.on('SIGTERM', async () => {
   await worker.close();
   await prisma.$disconnect();
+  server.close();
   process.exit(0);
 });

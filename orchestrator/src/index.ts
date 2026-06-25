@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'http';
 import { Worker, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { PrismaClient } from '@prisma/client';
@@ -112,9 +113,26 @@ async function processWorkflow(workflowId: string) {
 
 console.log('Engine A (Orchestrator) is running. Waiting for workflows...');
 
+// Health check server for Render
+const port = process.env.PORT || 8080;
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'orchestrator', timestamp: new Date().toISOString() }));
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
+});
+
+server.listen(port, () => {
+  console.log(`Orchestrator health check listening on port ${port}`);
+});
+
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   await orchestrator.close();
   await prisma.$disconnect();
+  server.close();
   process.exit(0);
 });
