@@ -10,11 +10,13 @@ export const Navigation: React.FC = () => {
       <div className="nav-links">
         <Link to="#">Architecture</Link>
         <Link to="#">API</Link>
-        <Link to="#">Docs</Link>
+        <Link to="/docs">Docs</Link>
         <Link to="#">GitHub</Link>
       </div>
       <div className="nav-actions">
-        <button className="btn btn-outline">Documentation</button>
+        <Link to="/docs">
+          <button className="btn btn-outline">Documentation</button>
+        </Link>
         <Link to="/dashboard">
           <button className="btn btn-primary">Dashboard</button>
         </Link>
