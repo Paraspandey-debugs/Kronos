@@ -10,9 +10,8 @@ function App() {
   return (
     <Router>
       <div className="app-container">
-        <Navigation />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<><Navigation /><LandingPage /></>} />
           <Route 
             path="/dashboard" 
             element={
@@ -26,7 +25,7 @@ function App() {
               </>
             } 
           />
-          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/docs" element={<><Navigation /><DocsPage /></>} />
         </Routes>
       </div>
     </Router>

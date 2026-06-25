@@ -4,7 +4,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-reac
 
 export const Navigation: React.FC = () => {
   return (
-    <nav>
+    <nav className="main-nav">
       <div style={{ fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Kronos</Link>
       </div>

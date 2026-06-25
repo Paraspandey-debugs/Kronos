@@ -54,7 +54,7 @@ a:hover {
 }
 
 /* Navigation */
-nav {
+.main-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -245,6 +245,4 @@ nav {
     flex-grow: 1;
 }
 
-.dashboard-container {
-    padding: 4rem;
-}
+
