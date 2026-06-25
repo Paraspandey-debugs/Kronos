@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 
 export const Navigation: React.FC = () => {
   return (
@@ -13,13 +14,21 @@ export const Navigation: React.FC = () => {
         <Link to="/docs">Docs</Link>
         <Link to="#">GitHub</Link>
       </div>
-      <div className="nav-actions">
+      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <Link to="/docs">
           <button className="btn btn-outline">Documentation</button>
         </Link>
-        <Link to="/dashboard">
-          <button className="btn btn-primary">Dashboard</button>
-        </Link>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <button className="btn btn-primary">Sign In</button>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn>
+          <Link to="/dashboard">
+            <button className="btn btn-primary">Dashboard</button>
+          </Link>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
       </div>
     </nav>
   );

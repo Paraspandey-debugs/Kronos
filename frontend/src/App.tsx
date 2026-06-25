@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import { Navigation } from './components/Navigation';
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -12,7 +13,19 @@ function App() {
         <Navigation />
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <>
+                <SignedIn>
+                  <DashboardPage />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            } 
+          />
           <Route path="/docs" element={<DocsPage />} />
         </Routes>
       </div>
