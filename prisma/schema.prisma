@@ -19,8 +19,18 @@ model Task {
   updatedAt   DateTime @updatedAt
 }
 
+model User {
+  id        String     @id @default(uuid())
+  clerkId   String     @unique
+  email     String?
+  createdAt DateTime   @default(now())
+  workflows Workflow[]
+}
+
 model Workflow {
   id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   status    String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
   error     String?
   createdAt DateTime @default(now())
