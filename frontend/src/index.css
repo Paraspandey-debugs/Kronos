@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Core Variables */
 :root {
     --bg-main: #050505;

@@ -25,12 +25,28 @@ model User {
   email     String?
   createdAt DateTime   @default(now())
   workflows Workflow[]
+  flows     Flow[]
+}
+
+model Flow {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  name        String
+  description String?
+  nodes       Json
+  edges       Json
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  workflows   Workflow[]
 }
 
 model Workflow {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+  flowId    String?
+  flow      Flow?    @relation(fields: [flowId], references: [id])
   status    String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
   error     String?
   createdAt DateTime @default(now())

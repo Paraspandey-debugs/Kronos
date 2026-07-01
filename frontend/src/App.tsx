@@ -4,6 +4,8 @@ import { Navigation } from './components/Navigation';
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocsPage } from './pages/DocsPage';
+import { FlowsList } from './pages/Flows';
+import { FlowEditorPage } from './pages/Flows/Editor';
 import './index.css';
 
 function App() {
@@ -18,6 +20,32 @@ function App() {
               <>
                 <SignedIn>
                   <DashboardPage />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            } 
+          />
+          <Route 
+            path="/flows" 
+            element={
+              <>
+                <SignedIn>
+                  <Navigation /><FlowsList />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            } 
+          />
+          <Route 
+            path="/flows/:id" 
+            element={
+              <>
+                <SignedIn>
+                  <FlowEditorPage />
                 </SignedIn>
                 <SignedOut>
                   <RedirectToSignIn />

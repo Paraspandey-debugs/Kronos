@@ -34,7 +34,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
           <button
             key={item.name}
             className={`dashboard-nav-item ${activeTab === item.name ? 'active' : ''}`}
-            onClick={() => setActiveTab(item.name)}
+            onClick={() => {
+              if (item.name === 'Flows') {
+                window.location.href = '/flows';
+              } else {
+                setActiveTab(item.name);
+              }
+            }}
           >
             <item.icon size={18} />
             <span>{item.name}</span>
