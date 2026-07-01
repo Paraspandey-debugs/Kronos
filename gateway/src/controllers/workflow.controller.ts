@@ -5,6 +5,9 @@ import { databaseService } from '../services/database.service';
 
 export const listWorkflows = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log(`[AUTH DEBUG] Headers:`, req.headers.authorization ? 'Bearer [HIDDEN]' : 'MISSING');
+    console.log(`[AUTH DEBUG] req.auth:`, (req as any).auth);
+    
     const clerkId = (req as any).auth?.userId;
     if (!clerkId) {
       res.status(401).json({ error: 'Unauthorized' });
