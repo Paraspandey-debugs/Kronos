@@ -12,19 +12,9 @@ async function main() {
       type: 'start', 
       label: 'Start', 
       description: 'Starts the flow', 
-      defaultPayload: { target: 'https://example.com' },
-      outputSchema: {
-        type: 'object',
-        properties: {
-          target: { type: 'string' }
-        }
-      },
-      configSchema: {
-        type: 'object',
-        properties: {
-          target: { type: 'string', title: 'Target URL', ui: { component: 'Input', placeholder: 'https://...' } }
-        }
-      }
+      defaultPayload: { "myInitialData": "hello world" },
+      outputSchema: {},
+      configSchema: {}
     },
     { 
       type: 'scout', 
@@ -117,9 +107,18 @@ async function main() {
       type: 'end', 
       label: 'End', 
       description: 'Ends the flow', 
-      defaultPayload: {},
+      defaultPayload: { result: '' },
       outputSchema: {},
-      configSchema: {}
+      configSchema: {
+        type: 'object',
+        properties: {
+          result: {
+            type: 'string',
+            title: 'Output Data',
+            ui: { component: 'VariablePicker', placeholder: 'Select data to return' }
+          }
+        }
+      }
     }
   ];
 

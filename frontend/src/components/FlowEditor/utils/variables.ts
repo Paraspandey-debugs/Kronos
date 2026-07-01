@@ -96,7 +96,24 @@ export function getAvailableVariables(nodes: Node[], edges: Edge[], currentNodeI
 
   return ancestors.map(node => {
     const template = templates.find(t => t.type === node.type);
-    const outputs = flattenOutputSchema(template?.outputSchema);
+    let outputs = flattenOutputSchema(template?.outputSchema);
+    
+    // Fallback: If it's a start node (or any node with empty outputSchema), extract keys from payload
+    if (outputs.length === 0 && node.data?.payload) {
+      try {
+        const payloadObj = typeof node.data.payload === 'string' 
+          ? JSON.parse(node.data.payload) 
+          : node.data.payload;
+        
+        if (typeof payloadObj === 'object' && payloadObj !== null) {
+          outputs = Object.keys(payloadObj).map(key => ({
+            path: key,
+            type: typeof payloadObj[key]
+          }));
+        }
+      } catch (e) {}
+    }
+    
     return {
       nodeId: node.id,
       nodeName: (node.data?.label as string) || node.type || 'Unknown',
