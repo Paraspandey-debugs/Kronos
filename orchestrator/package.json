@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -16,10 +17,8 @@
   "devDependencies": {
     "@types/node": "^26.0.1",
     "@types/pg": "^8.20.0",
+    "prisma": "^7.8.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
-  },
-  "prisma": {
-    "schema": "../prisma/schema.prisma"
   }
 }
