@@ -9,7 +9,7 @@ const router = Router();
 
 router.use('/health', healthRoutes);
 router.use('/workflows', authMiddleware, workflowRoutes);
-router.use('/flows', flowRoutes);
+router.use('/flows', authMiddleware, flowRoutes);
 router.use('/agents', authMiddleware, agentRoutes);
 
 export default router;
