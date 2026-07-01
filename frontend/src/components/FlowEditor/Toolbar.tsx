@@ -1,47 +1,80 @@
-import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Layout, Save, Play, Loader2, CheckCircle2, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Props {
+  flowName: string;
+  onFlowNameChange: (name: string) => void;
   onLayout: () => void;
   onSave: () => void;
   onRun: () => void;
+  isSaving?: boolean;
+  isRunning?: boolean;
+  saveSuccess?: boolean;
 }
 
-export const Toolbar: React.FC<Props> = ({ onLayout, onSave, onRun }) => {
+export const Toolbar: React.FC<Props> = ({
+  flowName, onFlowNameChange,
+  onLayout, onSave, onRun,
+  isSaving, isRunning, saveSuccess,
+}) => {
   const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
 
   return (
-    <header className="h-14 border-b border-[rgba(255,255,255,0.1)] bg-[#111111] flex items-center justify-between px-4 shrink-0 w-full z-10">
-      <div className="flex items-center gap-4">
-        <button 
-          onClick={() => navigate('/flows')}
-          className="text-sm text-neutral-400 hover:text-white transition-colors flex items-center gap-2"
-        >
-          <ArrowLeft size={16} /> Back to Flows
+    <header className="fe-toolbar">
+      <div className="fe-toolbar-left">
+        <button className="fe-btn" onClick={() => navigate('/flows')}>
+          <ArrowLeft size={14} /> Back
         </button>
-        <div className="h-4 w-px bg-neutral-700"></div>
-        <h1 className="text-white font-medium">Workflow Editor</h1>
+
+        <div className="fe-divider" />
+
+        {/* Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#71717a' }}>
+          <span style={{ cursor: 'pointer', color: '#a1a1aa' }} onClick={() => navigate('/flows')}>Flows</span>
+          <ChevronRight size={12} />
+          <input
+            className="fe-flow-name"
+            value={flowName}
+            onChange={e => onFlowNameChange(e.target.value)}
+            onFocus={() => setEditing(true)}
+            onBlur={() => setEditing(false)}
+            style={{ color: editing ? '#fff' : '#e4e4e7' }}
+            spellCheck={false}
+          />
+        </div>
+
+        {saveSuccess && (
+          <span className="fe-saving-pill" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <CheckCircle2 size={10} /> Saved
+          </span>
+        )}
       </div>
-      
-      <div className="flex items-center gap-3">
-        <button 
-          onClick={onLayout}
-          className="px-3 py-1.5 text-sm rounded bg-[#1a1a1a] hover:bg-[#222222] border border-[rgba(255,255,255,0.1)] text-white transition-colors"
-        >
-          Auto Layout
+
+      <div className="fe-toolbar-right">
+        <button className="fe-btn" onClick={onLayout} title="Auto-arrange nodes">
+          <Layout size={14} /> Auto Layout
         </button>
-        <button 
+
+        <button
+          className="fe-btn"
           onClick={onSave}
-          className="px-4 py-1.5 text-sm rounded bg-[#1a1a1a] hover:bg-[#222222] border border-[rgba(255,255,255,0.1)] text-white transition-colors"
+          disabled={isSaving}
+          title="Save (Ctrl+S)"
         >
-          Save Flow
+          {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+          Save
         </button>
-        <button 
+
+        <button
+          className="fe-btn fe-btn-success"
           onClick={onRun}
-          className="px-4 py-1.5 text-sm rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
+          disabled={isRunning}
+          title="Deploy and run this flow"
         >
-          Deploy Flow
+          {isRunning ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+          Deploy
         </button>
       </div>
     </header>

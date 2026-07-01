@@ -1,72 +1,93 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
-import { Play, Search, Box, Zap, Flag } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAgentTemplates } from '../../../lib/api';
+import { useAuth } from '@clerk/clerk-react';
 
-interface CustomNodeProps extends NodeProps<Node> {
-  typeColor: string;
-  icon: React.ReactNode;
-  defaultLabel: string;
-  handles: { type: 'source' | 'target', position: Position, id?: string, style?: any }[];
-}
-
-const BaseNode = memo(({ data, selected, typeColor, icon, defaultLabel, handles }: CustomNodeProps) => (
-  <div className={`flow-node node-${typeColor} ${selected ? 'selected' : ''}`}>
-    <div className="flow-node-icon">{icon}</div>
-    {handles.map((h, i) => (
-      <Handle 
-        key={i} 
-        type={h.type} 
-        position={h.position} 
-        id={h.id} 
-        style={h.style} 
-        className={`flow-handle ${h.position === Position.Left ? 'left' : 'right'}`} 
-      />
-    ))}
-    <div className="flow-node-label">{data?.label as string || defaultLabel}</div>
-  </div>
-));
-
-BaseNode.displayName = 'BaseNode';
-
-export const StartNode = (props: NodeProps<Node>) => (
-  <BaseNode {...props} typeColor="green" defaultLabel="Start" icon={<Play />} handles={[
-    { type: 'source', position: Position.Right }
-  ]} />
-);
-
-export const ScoutNode = (props: NodeProps<Node>) => (
-  <BaseNode {...props} typeColor="blue" defaultLabel="Scout" icon={<Search />} handles={[
-    { type: 'target', position: Position.Left },
-    { type: 'source', position: Position.Right }
-  ]} />
-);
-
-export const CompressorNode = (props: NodeProps<Node>) => (
-  <BaseNode {...props} typeColor="amber" defaultLabel="Compressor" icon={<Box />} handles={[
-    { type: 'target', position: Position.Left },
-    { type: 'source', position: Position.Right }
-  ]} />
-);
-
-export const DecisionNode = (props: NodeProps<Node>) => (
-  <BaseNode {...props} typeColor="purple" defaultLabel="Decision" icon={<Zap />} handles={[
-    { type: 'target', position: Position.Left },
-    { type: 'source', position: Position.Right, id: 'true', style: { top: '25%' } },
-    { type: 'source', position: Position.Right, id: 'false', style: { top: '75%', borderColor: '#f43f5e' } }
-  ]} />
-);
-
-export const EndNode = (props: NodeProps<Node>) => (
-  <BaseNode {...props} typeColor="rose" defaultLabel="End" icon={<Flag />} handles={[
-    { type: 'target', position: Position.Left }
-  ]} />
-);
-
-export const nodeTypes = {
-  start: StartNode,
-  scout: ScoutNode,
-  compressor: CompressorNode,
-  decision: DecisionNode,
-  end: EndNode,
+// Fallback algorithm to deterministically pick a color based on type string
+const colors = ['n-blue', 'n-green', 'n-amber', 'n-purple', 'n-rose', 'n-teal'];
+const getColorForType = (type: string) => {
+  if (type === 'start') return 'n-green';
+  if (type === 'end') return 'n-rose';
+  if (type === 'decision') return 'n-purple';
+  
+  let hash = 0;
+  for (let i = 0; i < type.length; i++) hash = type.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
 };
+
+export const DynamicNode = memo(({ data, type, selected }: NodeProps<Node>) => {
+  const { getToken } = useAuth();
+  const { data: templates = [] } = useQuery({
+    queryKey: ['agent-templates'],
+    queryFn: async () => {
+      const token = await getToken();
+      return fetchAgentTemplates(token || '');
+    }
+  });
+
+  const template = templates.find((t: any) => t.type === type);
+  
+  const status = (data?.status as string) || 'idle';
+  
+  // Resolve UI config from template, with smart defaults
+  const typeLabel = template?.label || type;
+  const iconName = template?.icon || (type === 'start' ? 'Play' : type === 'end' ? 'Flag' : type === 'decision' ? 'Zap' : 'Box');
+  const colorClass = template?.color || getColorForType(type);
+  
+  const hasInput = type !== 'start';
+  const hasOutput = type !== 'end' && type !== 'decision';
+  const outputIds = type === 'decision' ? ['true', 'false'] : undefined;
+  
+  // Dynamically resolve icon from Lucide
+  const Icon = (LucideIcons as any)[iconName] || LucideIcons.Box;
+
+  return (
+    <div className={`kn-node ${colorClass} ${selected ? 'selected' : ''}`}>
+      {/* Target handle */}
+      {hasInput && (
+        <Handle
+          type="target"
+          position={Position.Left}
+          className="kn-handle kn-handle-left"
+        />
+      )}
+
+      {/* Icon badge */}
+      <div className="kn-icon">
+        <Icon size={16} />
+      </div>
+
+      {/* Text */}
+      <div className="kn-body">
+        <span className="kn-name">{(data?.label as string) || typeLabel}</span>
+        <span className="kn-type">{typeLabel}</span>
+      </div>
+
+      {/* Status dot */}
+      <div className={`kn-status ${status}`} title={status} />
+
+      {/* Source handle(s) */}
+      {hasOutput && (
+        <Handle
+          type="source"
+          position={Position.Right}
+          className="kn-handle kn-handle-right"
+        />
+      )}
+      {outputIds?.map((id, i) => (
+        <Handle
+          key={id}
+          type="source"
+          position={Position.Right}
+          id={id}
+          className="kn-handle kn-handle-right"
+          style={{ top: `${25 + i * 50}%` }}
+        />
+      ))}
+    </div>
+  );
+});
+DynamicNode.displayName = 'DynamicNode';

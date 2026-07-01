@@ -1,46 +1,101 @@
-import React from 'react';
-import { Play, Search, Box, Zap, Flag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, X } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 
-const STYLING_MAP: any = {
-  start: { icon: <Play size={20} className="text-green-400" />, bg: 'bg-green-950/60', border: 'border-green-500', shadow: 'shadow-[0_0_15px_rgba(34,197,94,0.15)] group-hover:shadow-[0_0_20px_rgba(34,197,94,0.3)]' },
-  scout: { icon: <Search size={20} className="text-blue-400" />, bg: 'bg-blue-950/60', border: 'border-blue-500', shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]' },
-  compressor: { icon: <Box size={20} className="text-amber-400" />, bg: 'bg-amber-950/60', border: 'border-amber-500', shadow: 'shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]' },
-  decision: { icon: <Zap size={20} className="text-purple-400" />, bg: 'bg-purple-950/60', border: 'border-purple-500', shadow: 'shadow-[0_0_15px_rgba(168,85,247,0.15)] group-hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]' },
-  end: { icon: <Flag size={20} className="text-rose-400" />, bg: 'bg-rose-950/60', border: 'border-rose-500', shadow: 'shadow-[0_0_15px_rgba(244,63,94,0.15)] group-hover:shadow-[0_0_20px_rgba(244,63,94,0.3)]' },
+interface Props { templates?: any[]; }
+
+const colors = ['n-blue', 'n-green', 'n-amber', 'n-purple', 'n-rose', 'n-teal'];
+const getColorForType = (type: string) => {
+  if (type === 'start') return 'n-green';
+  if (type === 'end') return 'n-rose';
+  if (type === 'decision') return 'n-purple';
+  let hash = 0;
+  for (let i = 0; i < type.length; i++) hash = type.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
 };
 
-export const Sidebar: React.FC<{ templates?: any[] }> = ({ templates = [] }) => {
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
+export const Sidebar: React.FC<Props> = ({ templates = [] }) => {
+  const [query, setQuery] = useState('');
+
+  const filtered = templates.filter(t =>
+    t.label.toLowerCase().includes(query.toLowerCase()) ||
+    t.type.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const onDragStart = (e: React.DragEvent, type: string) => {
+    e.dataTransfer.setData('application/reactflow', type);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const colorMap: Record<string, { bg: string; fg: string }> = {
+    'n-green':  { bg: 'rgba(34,197,94,0.12)',  fg: '#22c55e' },
+    'n-blue':   { bg: 'rgba(59,130,246,0.12)', fg: '#3b82f6' },
+    'n-amber':  { bg: 'rgba(245,158,11,0.12)', fg: '#f59e0b' },
+    'n-purple': { bg: 'rgba(168,85,247,0.12)', fg: '#a855f7' },
+    'n-rose':   { bg: 'rgba(244,63,94,0.12)',  fg: '#f43f5e' },
+    'n-teal':   { bg: 'rgba(20,184,166,0.12)', fg: '#14b8a6' },
   };
 
   return (
-    <aside className="w-64 border-r border-[rgba(255,255,255,0.1)] bg-[#111111] flex flex-col shrink-0 z-10 h-full">
-      <div className="p-4 border-b border-[rgba(255,255,255,0.1)]">
-        <h2 className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">Node Types</h2>
+    <aside className="fe-sidebar">
+      {/* Search */}
+      <div className="fe-sidebar-search">
+        <Search size={13} color="#52525b" />
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search nodes..."
+        />
+        {query && (
+          <button onClick={() => setQuery('')} style={{ color: '#52525b', cursor: 'pointer', background: 'transparent', border: 'none' }}>
+            <X size={13} />
+          </button>
+        )}
       </div>
-      
-      <div className="p-4 flex flex-col gap-4 overflow-y-auto">
-        {templates.map(({ type, label, description }) => {
-          const style = STYLING_MAP[type] || STYLING_MAP.scout; // fallback
+
+      {/* Section label */}
+      <div style={{ padding: '10px 12px 4px', fontSize: 10.5, fontWeight: 600, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        Nodes
+      </div>
+
+      {/* Node list */}
+      <div className="fe-sidebar-nodes">
+        {filtered.map(({ type, label, description, icon, color }) => {
+          const iconName = icon || (type === 'start' ? 'Play' : type === 'end' ? 'Flag' : type === 'decision' ? 'Zap' : 'Box');
+          const Icon = (LucideIcons as any)[iconName] || LucideIcons.Box;
+          
+          const resolvedColor = color || getColorForType(type);
+          const c = colorMap[resolvedColor] || colorMap['n-blue'];
+
           return (
             <div
               key={type}
-              className="flex items-center gap-4 group cursor-grab"
+              className="fe-node-item"
               draggable
-              onDragStart={(e) => onDragStart(e, type)}
+              onDragStart={e => onDragStart(e, type)}
+              title={description}
             >
-              <div className={`w-12 h-12 rounded-xl ${style.bg} border-2 ${style.border} ${style.shadow} transition-all flex items-center justify-center shrink-0`}>
-                {style.icon}
+              <div className="fe-node-badge" style={{ background: c.bg }}>
+                <Icon size={15} color={c.fg} />
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-white">{label}</h3>
-                <p className="text-xs text-[#a1a1aa]">{description}</p>
+              <div className="fe-node-info">
+                <strong>{label}</strong>
+                <span>{description}</span>
               </div>
             </div>
           );
         })}
+
+        {filtered.length === 0 && (
+          <div style={{ padding: '20px 12px', textAlign: 'center', color: '#52525b', fontSize: 12 }}>
+            No nodes match "{query}"
+          </div>
+        )}
+      </div>
+
+      {/* Footer hint */}
+      <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 11, color: '#3f3f46' }}>
+        Drag a node onto the canvas
       </div>
     </aside>
   );
