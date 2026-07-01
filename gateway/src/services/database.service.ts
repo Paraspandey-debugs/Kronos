@@ -26,11 +26,16 @@ export const databaseService = {
     });
   },
   
-  getWorkflowsByUser: async (userId: string) => {
+  getWorkflowsByUser: async (userId: string, filters?: { status?: string, take?: number, orderBy?: any }) => {
+    const { status, take, orderBy } = filters || {};
     return await prisma.workflow.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        ...(status ? { status } : {})
+      },
       include: { steps: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: orderBy || { createdAt: 'desc' },
+      ...(take ? { take } : {})
     });
   },
 

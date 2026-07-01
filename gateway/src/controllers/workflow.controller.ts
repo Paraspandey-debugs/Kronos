@@ -41,7 +41,18 @@ export const listWorkflows = async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const workflows = await workflowService.getWorkflowsByUser(user.id);
+    const { status, take, orderBy } = req.query;
+    const filters: any = {};
+    if (status) filters.status = status as string;
+    if (take) filters.take = parseInt(take as string, 10);
+    if (orderBy) {
+      const [field, direction] = (orderBy as string).split(':');
+      if (field && direction) {
+        filters.orderBy = { [field]: direction };
+      }
+    }
+
+    const workflows = await workflowService.getWorkflowsByUser(user.id, filters);
     res.json(workflows);
   } catch (error) {
     next(error);

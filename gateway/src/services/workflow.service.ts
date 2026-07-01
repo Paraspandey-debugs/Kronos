@@ -17,8 +17,8 @@ export const workflowService = {
     };
   },
 
-  getWorkflowsByUser: async (userId: string) => {
-    return await databaseService.getWorkflowsByUser(userId);
+  getWorkflowsByUser: async (userId: string, filters?: { status?: string, take?: number, orderBy?: any }) => {
+    return await databaseService.getWorkflowsByUser(userId, filters);
   },
 
   getWorkflowByIdAndUser: async (id: string, userId: string) => {
