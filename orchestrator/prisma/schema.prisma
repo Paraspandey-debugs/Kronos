@@ -1,0 +1,90 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  agentType   String
+  payload     Json
+  priority    String   @default("normal")
+  status      String   @default("PENDING")
+  result      Json?
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        String     @id @default(uuid())
+  clerkId   String     @unique
+  email     String?
+  createdAt DateTime   @default(now())
+  workflows Workflow[]
+  flows     Flow[]
+}
+
+model Flow {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  name        String
+  description String?
+  nodes       Json
+  edges       Json
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  workflows   Workflow[]
+}
+
+model Workflow {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  flowId    String?
+  flow      Flow?    @relation(fields: [flowId], references: [id])
+  name      String   @default("Untitled Workflow")
+  status    String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED, DRAFT
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  nodes     WorkflowNode[]
+}
+
+model WorkflowNode {
+  id          String   @id @default(uuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  positionX   Float?
+  positionY   Float?
+
+  type        String   // "START", "AGENT", "CONDITION", "END"
+  agentType   String?  // Only for "AGENT" nodes (scout, compressor, etc.)
+  
+  config      Json     // Stores payload, conditions, or webhook configs
+  stepIndex   Int      // Order of execution (0, 1, 2...)
+  
+  status      String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  result      Json?
+  error       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AgentTemplate {
+  id             String   @id @default(uuid())
+  type           String   @unique
+  label          String
+  description    String?
+  icon           String?
+  defaultPayload Json     @default("{}")
+  configSchema   Json?
+  outputSchema   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
