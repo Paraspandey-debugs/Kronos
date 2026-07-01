@@ -30,6 +30,7 @@ export const PropertiesPanel: React.FC<Props> = ({
 }) => {
   const [pickerKey, setPickerKey] = useState<string | null>(null);
   const [advanced, setAdvanced] = useState(false);
+  const [lastSelection, setLastSelection] = useState<{start: number, end: number} | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   if (!node) return null;
@@ -183,6 +184,8 @@ export const PropertiesPanel: React.FC<Props> = ({
               rows={7}
               value={typeof node.data?.payload === 'string' ? node.data.payload : JSON.stringify(node.data?.payload || {}, null, 2)}
               onChange={e => onUpdate({ ...node, data: { ...node.data, payload: e.target.value } })}
+              onBlur={e => setLastSelection({ start: e.target.selectionStart, end: e.target.selectionEnd })}
+              onSelect={e => setLastSelection({ start: (e.target as HTMLTextAreaElement).selectionStart, end: (e.target as HTMLTextAreaElement).selectionEnd })}
               placeholder="{}"
             />
             <VariablePicker
@@ -190,10 +193,10 @@ export const PropertiesPanel: React.FC<Props> = ({
               onClose={() => setPickerKey(null)}
               onSelect={val => {
                 if (textareaRef.current) {
-                  const start = textareaRef.current.selectionStart;
-                  const end = textareaRef.current.selectionEnd;
+                  const start = lastSelection?.start ?? textareaRef.current.value.length;
+                  const end = lastSelection?.end ?? textareaRef.current.value.length;
                   const currentVal = typeof node.data?.payload === 'string' ? node.data.payload : JSON.stringify(node.data?.payload || {}, null, 2);
-                  const newVal = currentVal.substring(0, start) + `"${val}"` + currentVal.substring(end);
+                  const newVal = currentVal.substring(0, start) + val + currentVal.substring(end);
                   onUpdate({ ...node, data: { ...node.data, payload: newVal } });
                 }
                 setPickerKey(null);
