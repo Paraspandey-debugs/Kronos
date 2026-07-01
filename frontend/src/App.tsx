@@ -8,6 +8,18 @@ import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { FlowEditorPage } from './pages/Flows/Editor';
 import './index.css';
 
+// Helper component for protected dashboard tabs
+const ProtectedTab = ({ tab }: { tab: string }) => (
+  <>
+    <SignedIn>
+      <DashboardLayout initialTab={tab} />
+    </SignedIn>
+    <SignedOut>
+      <RedirectToSignIn />
+    </SignedOut>
+  </>
+);
+
 function App() {
   return (
     <Router>
@@ -27,19 +39,11 @@ function App() {
               </>
             } 
           />
-          <Route 
-            path="/flows" 
-            element={
-              <>
-                <SignedIn>
-                  <DashboardLayout initialTab="Flows" />
-                </SignedIn>
-                <SignedOut>
-                  <RedirectToSignIn />
-                </SignedOut>
-              </>
-            } 
-          />
+          <Route path="/flows" element={<ProtectedTab tab="Flows" />} />
+          <Route path="/runs" element={<ProtectedTab tab="Runs" />} />
+          <Route path="/assets" element={<ProtectedTab tab="Assets" />} />
+          <Route path="/deployments" element={<ProtectedTab tab="Deployments" />} />
+          <Route path="/settings" element={<ProtectedTab tab="Settings" />} />
           <Route 
             path="/flows/:id" 
             element={

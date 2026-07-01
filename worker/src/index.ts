@@ -18,12 +18,22 @@ const worker = new Worker(
     await updateTaskStatus(taskId, 'RUNNING');
 
     try {
-      const handler = handlerRegistry[agentType];
-      if (!handler) {
-        throw new Error(`Unknown agentType: ${agentType}`);
-      }
+      let result;
+      const template = await prisma.agentTemplate.findUnique({ where: { type: agentType } });
 
-      const result = await handler(payload);
+      if (template && template.script) {
+        console.log(`Executing dynamic script for agent: ${agentType}`);
+        const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+        // Inject payload and standard global fetch into the script context
+        const dynamicFunc = new AsyncFunction('payload', 'fetch', template.script);
+        result = await dynamicFunc(payload, fetch);
+      } else {
+        const handler = handlerRegistry[agentType];
+        if (!handler) {
+          throw new Error(`Unknown agentType: ${agentType} and no dynamic script found`);
+        }
+        result = await handler(payload);
+      }
 
       await updateTaskStatus(taskId, 'COMPLETED', result);
       console.log(`Job ${job.id} finished successfully.`);

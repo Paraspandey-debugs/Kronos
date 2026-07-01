@@ -16,14 +16,23 @@ export const DashboardLayout: React.FC<{ initialTab?: string }> = ({ initialTab 
     setActiveTab(initialTab);
   }, [initialTab]);
 
+  // Wake up engines on mount (useful to prevent Render cold start delays)
+  useEffect(() => {
+    const engineA = import.meta.env.VITE_ENGINE_A_URL;
+    const engineB = import.meta.env.VITE_ENGINE_B_URL;
+    if (engineA) fetch(`${engineA}/health`).catch(() => {});
+    if (engineB) fetch(`${engineB}/health`).catch(() => {});
+  }, []);
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+
     
     // Update the URL to match the current tab
     if (tab === 'Home') {
       navigate('/dashboard');
-    } else if (tab === 'Flows') {
-      navigate('/flows');
+    } else {
+      navigate(`/${tab.toLowerCase()}`);
     }
   };
 

@@ -85,4 +85,5 @@ model AgentTemplate {
   updatedAt      DateTime @updatedAt
   configSchema   Json?
   outputSchema   Json?
+  script         String?
 }

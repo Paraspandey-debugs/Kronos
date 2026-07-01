@@ -17,11 +17,22 @@ const worker = new bullmq_1.Worker('task-queue', async (job) => {
     const { taskId, agentType, payload } = job.data;
     await (0, db_service_1.updateTaskStatus)(taskId, 'RUNNING');
     try {
-        const handler = registry_1.handlerRegistry[agentType];
-        if (!handler) {
-            throw new Error(`Unknown agentType: ${agentType}`);
+        let result;
+        const template = await db_service_1.prisma.agentTemplate.findUnique({ where: { type: agentType } });
+        if (template && template.script) {
+            console.log(`Executing dynamic script for agent: ${agentType}`);
+            const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+            // Inject payload and standard global fetch into the script context
+            const dynamicFunc = new AsyncFunction('payload', 'fetch', template.script);
+            result = await dynamicFunc(payload, fetch);
         }
-        const result = await handler(payload);
+        else {
+            const handler = registry_1.handlerRegistry[agentType];
+            if (!handler) {
+                throw new Error(`Unknown agentType: ${agentType} and no dynamic script found`);
+            }
+            result = await handler(payload);
+        }
         await (0, db_service_1.updateTaskStatus)(taskId, 'COMPLETED', result);
         console.log(`Job ${job.id} finished successfully.`);
         const step = await db_service_1.prisma.workflowNode.findUnique({
