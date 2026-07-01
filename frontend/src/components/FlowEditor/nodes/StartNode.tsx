@@ -1,7 +1,8 @@
-import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { memo } from 'react';
+import { Handle, Position } from '@xyflow/react';
+import type { NodeProps, Node } from '@xyflow/react';
 
-export const StartNode = memo(({ data, selected }: NodeProps) => {
+export const StartNode = memo(({ data, selected }: NodeProps<Node>) => {
   return (
     <div className={`px-4 py-2 rounded-full border-2 min-w-[80px] text-center ${selected ? 'border-green-500 shadow-lg' : 'border-green-300'} bg-green-50 text-black`}>
       <div className="text-sm font-bold text-green-700">🚀 {data.label as string || 'Start'}</div>

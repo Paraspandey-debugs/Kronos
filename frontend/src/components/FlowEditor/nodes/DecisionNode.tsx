@@ -1,7 +1,8 @@
-import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { memo } from 'react';
+import { Handle, Position } from '@xyflow/react';
+import type { NodeProps, Node } from '@xyflow/react';
 
-export const DecisionNode = memo(({ data, selected }: NodeProps) => {
+export const DecisionNode = memo(({ data, selected }: NodeProps<Node>) => {
   return (
     <div className={`px-4 py-2 rounded-lg border-2 border-dashed min-w-[120px] ${selected ? 'border-purple-500 shadow-lg' : 'border-purple-300'} bg-purple-50 text-black`}>
       <Handle type="target" position={Position.Top} />

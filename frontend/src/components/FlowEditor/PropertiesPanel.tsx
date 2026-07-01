@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Node } from '@xyflow/react';
+import { useState, useEffect } from 'react';
+import type { Node } from '@xyflow/react';
 
 interface Props {
   node: Node | null;

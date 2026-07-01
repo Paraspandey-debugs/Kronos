@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import dagre from '@dagrejs/dagre';
-import { Node, Edge } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -14,7 +14,7 @@ export const useAutoLayout = () => {
     nodes: Node[],
     edges: Edge[],
     setNodes: (nodes: Node[]) => void,
-    setEdges: (edges: Edge[]) => void,
+    _setEdges: (edges: Edge[]) => void,
     direction: 'TB' | 'LR' = 'TB'
   ) => {
     setIsLayouting(true);

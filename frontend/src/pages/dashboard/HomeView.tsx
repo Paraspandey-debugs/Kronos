@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-react';
 import { fetchWorkflows } from '../../lib/api.ts';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,7 +29,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export const HomeView: React.FC = () => {
   const { getToken } = useAuth();
-  const queryClient = useQueryClient();
+
   const [copied, setCopied] = useState(false);
   
   const { data: workflows, isLoading } = useQuery({

@@ -5,14 +5,13 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
-  Connection,
-  Edge,
-  Node,
   Background,
+  BackgroundVariant,
   Controls,
   MiniMap,
   useReactFlow,
 } from '@xyflow/react';
+import type { Connection, Edge, Node, NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { nodeTypes } from './nodes';
@@ -151,13 +150,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ initialData, onSaveFlow, o
           onDragOver={onDragOver}
           onDrop={onDrop}
           onEdgeContextMenu={onEdgeContextMenu}
-          nodeTypes={nodeTypes}
+          nodeTypes={nodeTypes as NodeTypes}
           edgeTypes={edgeTypes}
           fitView
           snapToGrid
           snapGrid={[15, 15]}
         >
-          <Background variant="dots" gap={12} size={1} />
+          <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           <Controls />
           <MiniMap />
         </ReactFlow>

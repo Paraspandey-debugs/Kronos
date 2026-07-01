@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-react';
 import { fetchFlows } from '../../lib/api.ts';
-import { Plus, Edit3, Play } from 'lucide-react';
+import { Plus, Edit3 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export const FlowsList: React.FC = () => {
