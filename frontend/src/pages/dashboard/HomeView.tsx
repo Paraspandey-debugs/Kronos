@@ -115,7 +115,18 @@ export const HomeView: React.FC = () => {
                         <td>{completedSteps}/{totalSteps} done</td>
                         <td className="text-muted">{formatDistanceToNow(new Date(w.createdAt), { addSuffix: true })}</td>
                         <td>
-                          <button className="dashboard-btn-outline" style={{ padding: '4px 8px', fontSize: '0.75rem' }}>
+                          <button 
+                            className="dashboard-btn-outline" 
+                            style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                            onClick={() => {
+                              const endNode = nodes.find((n: any) => n.type === 'END');
+                              if (endNode && endNode.result) {
+                                alert(`Workflow Output:\n\n${JSON.stringify(endNode.result, null, 2)}`);
+                              } else {
+                                alert(`Workflow is still ${w.status}. No output yet!`);
+                              }
+                            }}
+                          >
                             View
                           </button>
                         </td>
