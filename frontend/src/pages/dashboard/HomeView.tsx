@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-react';
 import { fetchWorkflows } from '../../lib/api.ts';
 import { formatDistanceToNow } from 'date-fns';
-import { Copy, Check, Play, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Copy, Check, Play, CheckCircle2, XCircle, Clock, X } from 'lucide-react';
 import '../../components/dashboard/dashboard.css';
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -32,6 +32,11 @@ export const HomeView: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   
+  // State for the Output Data Viewer Modal
+  const [selectedOutput, setSelectedOutput] = useState<any>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [copiedJson, setCopiedJson] = useState(false);
+  
   const { data: workflows, isLoading } = useQuery({
     queryKey: ['workflows'],
     queryFn: async () => {
@@ -53,6 +58,30 @@ export const HomeView: React.FC = () => {
 
   const curlExample = `curl -X POST https://api.kronos.dev/v1/flows/YOUR_FLOW_ID/run \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
+
+  // Helper to format output beautifully (parsing stringified nested JSON if any)
+  let formattedOutput = '';
+  if (selectedOutput) {
+    let dataToFormat = selectedOutput;
+    if (typeof selectedOutput === 'object' && selectedOutput !== null) {
+       const parsed = { ...selectedOutput };
+       for (const key in parsed) {
+         if (typeof parsed[key] === 'string') {
+           try {
+             parsed[key] = JSON.parse(parsed[key]);
+           } catch(e) {}
+         }
+       }
+       dataToFormat = parsed;
+    }
+    formattedOutput = JSON.stringify(dataToFormat, null, 2);
+  }
+
+  const handleCopyJson = () => {
+    navigator.clipboard.writeText(formattedOutput);
+    setCopiedJson(true);
+    setTimeout(() => setCopiedJson(false), 2000);
+  };
 
   return (
     <div className="home-dashboard">
@@ -121,9 +150,11 @@ export const HomeView: React.FC = () => {
                             onClick={() => {
                               const endNode = nodes.find((n: any) => n.type === 'END');
                               if (endNode && endNode.result) {
-                                alert(`Workflow Output:\n\n${JSON.stringify(endNode.result, null, 2)}`);
+                                setSelectedOutput(endNode.result);
+                                setSelectedStatus(null);
                               } else {
-                                alert(`Workflow is still ${w.status}. No output yet!`);
+                                setSelectedOutput(null);
+                                setSelectedStatus(w.status);
                               }
                             }}
                           >
@@ -139,6 +170,81 @@ export const HomeView: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Output Data Viewer Modal */}
+      {(selectedOutput || selectedStatus) && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }}>
+          <div style={{
+            background: '#18181b', border: '1px solid #27272a',
+            borderRadius: '12px', width: '90%', maxWidth: '650px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            animation: 'fadeIn 0.2s ease-out'
+          }}>
+            <div style={{
+              padding: '16px 20px', borderBottom: '1px solid #27272a',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#f4f4f5' }}>
+                {selectedOutput ? 'Execution Result' : 'Workflow Status'}
+              </h3>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {selectedOutput && (
+                  <button onClick={handleCopyJson} style={{
+                    background: 'rgba(255, 255, 255, 0.05)', border: '1px solid #27272a', 
+                    color: '#e4e4e7', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                    fontSize: '0.85rem', padding: '6px 12px', borderRadius: '6px', transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}>
+                    {copiedJson ? <Check size={14} color="#4ade80" /> : <Copy size={14} />}
+                    {copiedJson ? 'Copied!' : 'Copy JSON'}
+                  </button>
+                )}
+                <button 
+                  onClick={() => { setSelectedOutput(null); setSelectedStatus(null); }} 
+                  style={{
+                    background: 'transparent', border: 'none', color: '#a1a1aa',
+                    cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center',
+                    borderRadius: '6px', transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: '20px', maxHeight: '70vh', overflowY: 'auto', background: '#0f0f11' }}>
+              {selectedOutput ? (
+                <pre style={{
+                  margin: 0, padding: '16px', background: '#000',
+                  borderRadius: '8px', color: '#a1a1aa', fontSize: '0.875rem',
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', 
+                  overflowX: 'auto', border: '1px solid #27272a', lineHeight: '1.5'
+                }}>
+                  <code style={{ color: '#e4e4e7' }}>{formattedOutput}</code>
+                </pre>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#a1a1aa' }}>
+                  <Clock size={32} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                  <p style={{ margin: 0, fontSize: '1rem' }}>
+                    Workflow is currently <strong style={{ color: '#e4e4e7' }}>{selectedStatus}</strong>.
+                  </p>
+                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', opacity: 0.7 }}>
+                    The output data will be available here once the execution is completed.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
