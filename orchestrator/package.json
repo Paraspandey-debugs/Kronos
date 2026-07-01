@@ -6,13 +6,16 @@
     "dev": "ts-node src/index.ts"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bullmq": "^5.0.0",
     "dotenv": "^16.0.0",
-    "ioredis": "^5.3.2"
+    "ioredis": "^5.3.2",
+    "pg": "^8.22.0"
   },
   "devDependencies": {
     "@types/node": "^26.0.1",
+    "@types/pg": "^8.20.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   },

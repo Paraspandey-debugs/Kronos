@@ -3,6 +3,7 @@ import * as http from 'http';
 import { Worker, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 function resolvePayload(payload: any, context: Record<string, any>): any {
   // Handle string references like "$step_0.field"
@@ -31,7 +32,8 @@ function resolvePayload(payload: any, context: Record<string, any>): any {
   return payload;
 }
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   maxRetriesPerRequest: null
 });
