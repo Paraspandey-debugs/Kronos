@@ -19,9 +19,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 __pycache__/
 *.py[cod]
@@ -55,8 +52,8 @@ dmypy.json
 go.work
 go.work.sum
 
-dist/
-build/
+# dist/
+# build/
 out/
 .next/
 .nuxt/

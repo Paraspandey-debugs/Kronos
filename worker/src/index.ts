@@ -44,6 +44,19 @@ const worker = new Worker(
     } catch (error: any) {
       await updateTaskStatus(taskId, 'FAILED', null, error.message);
       console.error(`Job ${job.id} failed:`, error.message);
+      
+      const step = await prisma.workflowNode.findUnique({
+        where: { id: taskId },
+        select: { workflowId: true }
+      });
+      
+      if (step?.workflowId) {
+        const workflowQueue = new Queue('workflow-queue', { connection: redis as any });
+        await workflowQueue.add('continue-workflow', {
+          workflowId: step.workflowId
+        });
+      }
+
       throw error; 
     }
   },

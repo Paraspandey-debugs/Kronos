@@ -113,6 +113,12 @@ export const flowService = {
               parsedPayload = { _raw: node.data?.payload };
             }
 
+            const incomingEdges = edges.filter((e: any) => e.target === node.id);
+            const dependsOnIndices = incomingEdges.map((e: any) => {
+               const sourceNodeIndex = sorted.findIndex((n: any) => n.id === e.source);
+               return String(sourceNodeIndex);
+            });
+
             return {
               stepIndex: index,
               type: nodeType,
@@ -121,6 +127,7 @@ export const flowService = {
               positionX: node.position?.x,
               positionY: node.position?.y,
               status: 'PENDING',
+              dependsOn: dependsOnIndices,
             };
           }),
         },

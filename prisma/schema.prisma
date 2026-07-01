@@ -63,9 +63,12 @@ model WorkflowNode {
   agentType  String?
   config     Json
   stepIndex  Int
+  dependsOn  String[] @default([])
   status     String   @default("PENDING")
   result     Json?
   error      String?
+  startedAt  DateTime?
+  completedAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)

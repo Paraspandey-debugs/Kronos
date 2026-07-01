@@ -17,6 +17,7 @@ export async function updateTaskStatus(
       status,
       result: result || undefined,
       error: error || undefined,
+      completedAt: status === 'COMPLETED' || status === 'FAILED' ? new Date() : undefined,
     },
   });
 }
