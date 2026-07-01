@@ -55,11 +55,13 @@ async function executeStep(workflowId, stepId) {
         return;
     }
     else if (stepDef.type === 'END') {
+        resolvedInput = (0, resolver_service_1.resolveVariables)(stepDef.config?.payload || {}, previousSteps);
         // For END node, mark workflow as completed
         await prisma.workflowNode.update({
             where: { id: stepDef.id },
             data: {
                 status: 'COMPLETED',
+                result: resolvedInput,
                 completedAt: new Date()
             }
         });

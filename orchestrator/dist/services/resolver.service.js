@@ -3,23 +3,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveVariables = resolveVariables;
 function resolveVariables(input, previousSteps) {
     if (typeof input === 'string') {
-        // Match patterns like $step_id.data or $step_index.user.id
-        // First, let's try $nodeId.path
-        // But usually it's $step_0.field based on stepIndex in the current app
-        const match = input.match(/^\$step_([^.]+)\.(.+)$/);
-        if (match) {
-            const [, stepRef, path] = match;
-            // stepRef could be a stepIndex (number string) or a UUID
-            let step = previousSteps.find(s => s.id === stepRef);
-            if (!step) {
-                // Fallback to stepIndex for backward compatibility
-                step = previousSteps.find(s => String(s.stepIndex) === stepRef);
-            }
+        // 1. Exact match pattern: $step_id.data (returns the exact object/value, not just a string)
+        const exactMatch = input.match(/^\$step_([^.]+)\.(.+)$/);
+        if (exactMatch) {
+            const [, stepRef, path] = exactMatch;
+            let step = previousSteps.find(s => s.id === stepRef || String(s.stepIndex) === stepRef);
             if (!step || step.status !== 'COMPLETED') {
                 throw new Error(`Step ${stepRef} not completed or missing`);
             }
-            // Traverse the path (e.g., "user.id" => step.result.user.id)
             return path.split('.').reduce((obj, key) => obj?.[key], step.result);
+        }
+        // 2. Interpolation pattern: "some text {{$step_1.data}} more text" or "some text $step_1.data"
+        // Let's replace {{$step_x.y}} occurrences
+        if (input.includes('{{') && input.includes('}}')) {
+            return input.replace(/\{\{\$step_([^.]+)\.([^}]+)\}\}/g, (match, stepRef, path) => {
+                let step = previousSteps.find(s => s.id === stepRef || String(s.stepIndex) === stepRef);
+                if (!step || step.status !== 'COMPLETED') {
+                    return match; // Leave unreplaced if not found
+                }
+                const val = path.split('.').reduce((obj, key) => obj?.[key], step.result);
+                return typeof val === 'object' ? JSON.stringify(val) : String(val);
+            });
         }
         return input;
     }
