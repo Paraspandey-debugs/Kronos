@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-react';
-import { fetchWorkflows, createWorkflow } from '../../lib/api.ts';
+import { fetchWorkflows } from '../../lib/api.ts';
 import { formatDistanceToNow } from 'date-fns';
 import { Copy, Check, Play, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import '../../components/dashboard/dashboard.css';
@@ -32,9 +32,6 @@ export const HomeView: React.FC = () => {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   
-  const [agentType, setAgentType] = useState('scout');
-  const [payload, setPayload] = useState('{"target": "example.com"}');
-  
   const { data: workflows, isLoading } = useQuery({
     queryKey: ['workflows'],
     queryFn: async () => {
@@ -43,34 +40,10 @@ export const HomeView: React.FC = () => {
     }
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: any) => {
-      const token = await getToken();
-      return createWorkflow(data, token || '');
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
-      alert(`Workflow created: ${data.workflowId}`);
-    }
-  });
-
   const handleCopy = () => {
     navigator.clipboard.writeText(curlExample);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleQuickSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const parsedPayload = JSON.parse(payload);
-      mutation.mutate({
-        steps: [{ agentType, payload: parsedPayload }]
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Invalid JSON payload");
-    }
   };
 
   const totalRuns = workflows?.length || 0;
@@ -113,7 +86,7 @@ export const HomeView: React.FC = () => {
         </div>
       </div>
 
-      <div className="dashboard-grid-2">
+      <div style={{ width: '100%' }}>
         <div className="recent-activity-card">
           <h3 className="card-title" style={{ marginBottom: '1rem' }}>Recent Activity</h3>
           {isLoading ? (
@@ -154,31 +127,6 @@ export const HomeView: React.FC = () => {
               </table>
             </div>
           )}
-        </div>
-
-        <div className="quick-submit-card">
-          <h3 className="card-title" style={{ marginBottom: '1rem' }}>⚡ Quick Submit</h3>
-          <form onSubmit={handleQuickSubmit} className="quick-submit-form">
-            <div className="form-group">
-              <label>Agent Type:</label>
-              <select value={agentType} onChange={e => setAgentType(e.target.value)} className="form-input">
-                <option value="scout">scout</option>
-                <option value="executor">executor</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Payload (JSON):</label>
-              <textarea 
-                value={payload} 
-                onChange={e => setPayload(e.target.value)}
-                className="form-input font-mono"
-                rows={4}
-              />
-            </div>
-            <button type="submit" className="dashboard-btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={mutation.isPending}>
-              {mutation.isPending ? 'Submitting...' : 'Submit Workflow'}
-            </button>
-          </form>
         </div>
       </div>
     </div>

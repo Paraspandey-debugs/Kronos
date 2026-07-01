@@ -6,7 +6,7 @@ import { RunsView } from '../../pages/dashboard/RunsView';
 import './dashboard.css';
 
 export const DashboardLayout: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('Runs');
+  const [activeTab, setActiveTab] = useState('Home');
 
   return (
     <div className="dashboard-root" style={{
