@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import http from 'http';
+import * as http from 'http';
 import { Worker, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { PrismaClient } from '@prisma/client';

@@ -51,10 +51,8 @@ export const HomeView: React.FC = () => {
   const runningRuns = workflows?.filter((w: any) => w.status === 'RUNNING').length || 0;
   const recentWorkflows = workflows?.slice(0, 5) || [];
 
-  const curlExample = `curl -X POST https://api.kronos.dev/v1/workflows \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{"steps": [{"agentType": "scout", "payload": {"target": "example.com"}}]}'`;
+  const curlExample = `curl -X POST https://api.kronos.dev/v1/flows/YOUR_FLOW_ID/run \\
+  -H "Authorization: Bearer YOUR_TOKEN"`;
 
   return (
     <div className="home-dashboard">
@@ -107,8 +105,9 @@ export const HomeView: React.FC = () => {
                 </thead>
                 <tbody>
                   {recentWorkflows.map((w: any) => {
-                    const completedSteps = w.steps.filter((s: any) => s.status === 'COMPLETED').length;
-                    const totalSteps = w.steps.length;
+                    const nodes = w.nodes || [];
+                    const completedSteps = nodes.filter((s: any) => s.status === 'COMPLETED').length;
+                    const totalSteps = nodes.length;
                     return (
                       <tr key={w.id}>
                         <td className="font-mono">#{w.id.substring(0, 4)}</td>
