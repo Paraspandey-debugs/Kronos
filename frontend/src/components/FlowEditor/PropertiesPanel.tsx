@@ -58,7 +58,7 @@ export const PropertiesPanel: React.FC<Props> = ({
   
   const iconName = template?.icon || (node.type === 'start' ? 'Play' : node.type === 'end' ? 'Flag' : node.type === 'decision' ? 'Zap' : 'Box');
   const Icon = (LucideIcons as any)[iconName] || LucideIcons.Box;
-  const resolvedColor = template?.color || getColorForType(node.type);
+  const resolvedColor = template?.color || getColorForType(node.type || '');
   const accentColor = colorMap[resolvedColor] || '#6366f1';
 
   return (

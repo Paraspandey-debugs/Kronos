@@ -203,7 +203,8 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({
     setPicker(null);
   }, []);
 
-  const onPaneDoubleClick = useCallback((e: React.MouseEvent) => {
+  const onPaneContextMenu = useCallback((e: React.MouseEvent | MouseEvent) => {
+    e.preventDefault();
     const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
     setPicker({ screen: { x: e.clientX, y: e.clientY }, flow: flowPos });
   }, [screenToFlowPosition]);
@@ -283,7 +284,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({
           {nodes.length <= 1 && (
             <div className="canvas-hint">
               <div className="canvas-hint-icon">⚡</div>
-              <p>Double-click the canvas to add a node</p>
+              <p>Right-click the canvas to add a node</p>
               <p>or drag from the left panel</p>
             </div>
           )}
@@ -296,7 +297,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({
             onConnect={onConnect}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
-            onPaneDoubleClick={onPaneDoubleClick as any}
+            onPaneContextMenu={onPaneContextMenu}
             onNodesDelete={onNodesDelete}
             onDragOver={onDragOver}
             onDrop={onDrop}
@@ -324,7 +325,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({
             <MiniMap
               nodeColor={n => {
                 const template = templates.find((t: any) => t.type === n.type);
-                const metaColor = template?.color || getColorForType(n.type);
+                const metaColor = template?.color || getColorForType(n.type || '');
                 const colorMap: Record<string, string> = {
                   'n-green': '#22c55e', 'n-blue': '#3b82f6', 'n-amber': '#f59e0b',
                   'n-purple': '#a855f7', 'n-rose': '#f43f5e', 'n-teal': '#14b8a6',
