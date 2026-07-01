@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+import { getAuth } from '@clerk/express';
 import { flowService } from '../services/flow.service';
 import { databaseService } from '../services/database.service';
 
 export const createFlow = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) return res.status(401).json({ error: 'Unauthorized' });
     const user = await databaseService.getUserByClerkId(clerkId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -16,7 +17,7 @@ export const createFlow = async (req: Request, res: Response, next: NextFunction
 
 export const listFlows = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) return res.status(401).json({ error: 'Unauthorized' });
     const user = await databaseService.getUserByClerkId(clerkId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -28,7 +29,7 @@ export const listFlows = async (req: Request, res: Response, next: NextFunction)
 
 export const getFlow = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) return res.status(401).json({ error: 'Unauthorized' });
     const user = await databaseService.getUserByClerkId(clerkId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -41,7 +42,7 @@ export const getFlow = async (req: Request, res: Response, next: NextFunction) =
 
 export const updateFlow = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) return res.status(401).json({ error: 'Unauthorized' });
     const user = await databaseService.getUserByClerkId(clerkId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -53,7 +54,7 @@ export const updateFlow = async (req: Request, res: Response, next: NextFunction
 
 export const deleteFlow = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) return res.status(401).json({ error: 'Unauthorized' });
     const user = await databaseService.getUserByClerkId(clerkId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -65,7 +66,7 @@ export const deleteFlow = async (req: Request, res: Response, next: NextFunction
 
 export const runFlow = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) return res.status(401).json({ error: 'Unauthorized' });
     const user = await databaseService.getUserByClerkId(clerkId);
     if (!user) return res.status(404).json({ error: 'User not found' });

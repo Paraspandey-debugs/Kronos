@@ -1,14 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
+import { getAuth } from '@clerk/express';
 import { workflowService } from '../services/workflow.service';
 import { databaseService } from '../services/database.service';
 
 
 export const listWorkflows = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log(`[AUTH DEBUG] Headers:`, req.headers.authorization ? 'Bearer [HIDDEN]' : 'MISSING');
-    console.log(`[AUTH DEBUG] req.auth:`, (req as any).auth);
-    
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -39,7 +37,7 @@ export const listWorkflows = async (req: Request, res: Response, next: NextFunct
 
 export const getWorkflow = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clerkId = (req as any).auth?.userId;
+    const clerkId = getAuth(req).userId;
     if (!clerkId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
