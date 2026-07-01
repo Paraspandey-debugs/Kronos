@@ -23,7 +23,7 @@ export const FlowEditorPage: React.FC = () => {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (data: { nodes: any[], edges: any[] }) => {
+    mutationFn: async (data: { nodes: any[], edges: any[], name: string }) => {
       const token = await getToken();
       return saveFlow({ id: isNew ? undefined : id, ...data }, token || '');
     },
@@ -55,8 +55,8 @@ export const FlowEditorPage: React.FC = () => {
     }
   });
 
-  const handleSave = (nodes: any[], edges: any[]) => {
-    saveMutation.mutate({ nodes, edges });
+  const handleSave = (nodes: any[], edges: any[], name: string) => {
+    saveMutation.mutate({ nodes, edges, name });
   };
 
   const handleRun = () => {
