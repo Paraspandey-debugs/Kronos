@@ -42,7 +42,10 @@ export const saveFlow = async (flow: any, token: string) => {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(flow)
   });
-  if (!res.ok) throw new Error('Failed to save flow');
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Failed to save flow: ${res.status} ${errText}`);
+  }
   return res.json();
 };
 
@@ -51,7 +54,10 @@ export const runFlow = async (id: string, token: string) => {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` }
   });
-  if (!res.ok) throw new Error('Failed to run flow');
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Failed to run flow: ${res.status} ${errText}`);
+  }
   return res.json();
 };
 
