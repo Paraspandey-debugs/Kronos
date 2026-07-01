@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Trash2, Database, X, ChevronDown } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import type { Node, Edge } from '@xyflow/react';
@@ -30,6 +30,7 @@ export const PropertiesPanel: React.FC<Props> = ({
 }) => {
   const [pickerKey, setPickerKey] = useState<string | null>(null);
   const [advanced, setAdvanced] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   if (!node) return null;
 
@@ -55,7 +56,7 @@ export const PropertiesPanel: React.FC<Props> = ({
     'n-green': '#22c55e', 'n-blue': '#3b82f6', 'n-amber': '#f59e0b',
     'n-purple': '#a855f7', 'n-rose': '#f43f5e', 'n-teal': '#14b8a6',
   };
-  
+
   const iconName = template?.icon || (node.type === 'start' ? 'Play' : node.type === 'end' ? 'Flag' : node.type === 'decision' ? 'Zap' : 'Box');
   const Icon = (LucideIcons as any)[iconName] || LucideIcons.Box;
   const resolvedColor = template?.color || getColorForType(node.type || '');
@@ -162,13 +163,42 @@ export const PropertiesPanel: React.FC<Props> = ({
           ))
         ) : (
           <div className="fe-field">
-            <label className="fe-label">Payload (JSON)</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="fe-label">Payload (JSON)</label>
+              <button
+                onClick={() => setPickerKey('raw-json')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  color: '#6366f1', cursor: 'pointer', background: 'transparent', border: 'none',
+                  fontSize: 10, fontWeight: 500
+                }}
+                title="Insert Variable"
+              >
+                <Database size={11} /> Insert Var
+              </button>
+            </div>
             <textarea
+              ref={textareaRef}
               className="fe-textarea"
               rows={7}
               value={typeof node.data?.payload === 'string' ? node.data.payload : JSON.stringify(node.data?.payload || {}, null, 2)}
               onChange={e => onUpdate({ ...node, data: { ...node.data, payload: e.target.value } })}
               placeholder="{}"
+            />
+            <VariablePicker
+              isOpen={pickerKey === 'raw-json'}
+              onClose={() => setPickerKey(null)}
+              onSelect={val => {
+                if (textareaRef.current) {
+                  const start = textareaRef.current.selectionStart;
+                  const end = textareaRef.current.selectionEnd;
+                  const currentVal = typeof node.data?.payload === 'string' ? node.data.payload : JSON.stringify(node.data?.payload || {}, null, 2);
+                  const newVal = currentVal.substring(0, start) + `"${val}"` + currentVal.substring(end);
+                  onUpdate({ ...node, data: { ...node.data, payload: newVal } });
+                }
+                setPickerKey(null);
+              }}
+              availableVariables={getAvailableVariables(nodes, edges, node.id, templates)}
             />
           </div>
         )}

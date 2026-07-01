@@ -104,11 +104,20 @@ export const flowService = {
               agentType = undefined;
             }
 
+            let parsedPayload = {};
+            try {
+              parsedPayload = typeof node.data?.payload === 'string' 
+                ? JSON.parse(node.data.payload) 
+                : (node.data?.payload || {});
+            } catch (e) {
+              parsedPayload = { _raw: node.data?.payload };
+            }
+
             return {
               stepIndex: index,
               type: nodeType,
               agentType: agentType,
-              config: { payload: node.data?.payload || {} },
+              config: { payload: parsedPayload },
               positionX: node.position?.x,
               positionY: node.position?.y,
               status: 'PENDING',
