@@ -68,6 +68,7 @@ export const HomeView: React.FC = () => {
         steps: [{ agentType, payload: parsedPayload }]
       });
     } catch (err) {
+      console.error(err);
       alert("Invalid JSON payload");
     }
   };
