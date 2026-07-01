@@ -4,7 +4,7 @@ import { Navigation } from './components/Navigation';
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocsPage } from './pages/DocsPage';
-import { FlowsList } from './pages/Flows';
+import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { FlowEditorPage } from './pages/Flows/Editor';
 import './index.css';
 
@@ -32,7 +32,7 @@ function App() {
             element={
               <>
                 <SignedIn>
-                  <Navigation /><FlowsList />
+                  <DashboardLayout initialTab="Flows" />
                 </SignedIn>
                 <SignedOut>
                   <RedirectToSignIn />

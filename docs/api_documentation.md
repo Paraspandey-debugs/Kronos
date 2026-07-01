@@ -60,6 +60,131 @@ Submits a new workflow to the system. The payload is validated against the schem
 * **Response (400 Bad Request):**
   Returned if the payload fails validation (e.g., missing fields, invalid agentType).
 
+### 1.3 List Workflows
+Retrieves a paginated list of workflow executions.
+
+* **Method:** `GET`
+* **Path:** `/workflows`
+* **Query Parameters:**
+  * `status` (optional): Filter by workflow status (e.g., PENDING, COMPLETED, FAILED).
+  * `take` (optional): Number of records to return.
+* **Headers:** `Authorization: Bearer <token>`
+* **Response (200 OK):**
+  ```json
+  [
+    {
+      "id": "uuid-string-here",
+      "name": "Example Workflow",
+      "status": "COMPLETED",
+      "createdAt": "2026-06-25T07:15:00.000Z"
+    }
+  ]
+  ```
+
+### 1.4 List Flows (Visual DAGs)
+Retrieves all visual workflows (Flows) created by the authenticated user.
+
+* **Method:** `GET`
+* **Path:** `/flows`
+* **Headers:** `Authorization: Bearer <token>`
+* **Response (200 OK):**
+  ```json
+  [
+    {
+      "id": "uuid-string-here",
+      "name": "My Web Scraper Flow",
+      "createdAt": "2026-06-25T07:15:00.000Z"
+    }
+  ]
+  ```
+
+### 1.5 Get Flow
+Retrieves the complete configuration (nodes and edges) for a specific flow.
+
+* **Method:** `GET`
+* **Path:** `/flows/:id`
+* **Headers:** `Authorization: Bearer <token>`
+* **Response (200 OK):**
+  ```json
+  {
+    "id": "uuid-string-here",
+    "name": "My Web Scraper Flow",
+    "nodes": [...],
+    "edges": [...]
+  }
+  ```
+
+### 1.6 Create Flow
+Saves a new visual workflow created via the DAG editor.
+
+* **Method:** `POST`
+* **Path:** `/flows`
+* **Headers:** 
+  * `Authorization: Bearer <token>`
+  * `Content-Type: application/json`
+* **Request Body:**
+  ```json
+  {
+    "name": "New Flow",
+    "nodes": [...],
+    "edges": [...]
+  }
+  ```
+* **Response (201 Created):** Returns the created flow object with its new `id`.
+
+### 1.7 Update Flow
+Updates an existing flow's nodes and edges.
+
+* **Method:** `PUT`
+* **Path:** `/flows/:id`
+* **Headers:** 
+  * `Authorization: Bearer <token>`
+  * `Content-Type: application/json`
+* **Request Body:**
+  ```json
+  {
+    "name": "Updated Flow Name",
+    "nodes": [...],
+    "edges": [...]
+  }
+  ```
+* **Response (200 OK):** Returns the updated flow object.
+
+### 1.8 Run Flow
+Compiles a visual flow into a workflow execution and queues it for Engine A.
+
+* **Method:** `POST`
+* **Path:** `/flows/:id/run`
+* **Headers:** `Authorization: Bearer <token>`
+* **Response (200 OK):**
+  ```json
+  {
+    "status": "WORKFLOW_QUEUED",
+    "workflowId": "uuid-string-here"
+  }
+  ```
+
+### 1.9 Get Agent Templates
+Retrieves the dynamic configuration schemas for all available nodes/agents in the system, used to render the editor UI.
+
+* **Method:** `GET`
+* **Path:** `/agents/templates`
+* **Headers:** `Authorization: Bearer <token>`
+* **Response (200 OK):**
+  ```json
+  [
+    {
+      "type": "scout",
+      "label": "Scout",
+      "description": "Data fetching",
+      "icon": "Search",
+      "color": "n-blue",
+      "configSchema": { ... },
+      "outputSchema": { ... }
+    }
+  ]
+  ```
+
 ---
 
 ## 2. Engine A / Orchestrator (`kronos-enginea.onrender.com`)

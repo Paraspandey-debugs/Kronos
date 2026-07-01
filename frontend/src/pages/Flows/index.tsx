@@ -5,6 +5,8 @@ import { useAuth } from '@clerk/clerk-react';
 import { fetchFlows } from '../../lib/api.ts';
 import { Plus, Edit3 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import '../../components/dashboard/dashboard.css';
+import './Flows.css';
 
 export const FlowsList: React.FC = () => {
   const { getToken } = useAuth();
@@ -19,8 +21,7 @@ export const FlowsList: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="flows-dashboard text-white">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Visual Flows</h1>
@@ -38,7 +39,7 @@ export const FlowsList: React.FC = () => {
         {isLoading ? (
           <div className="text-gray-400">Loading your flows...</div>
         ) : !flows || flows.length === 0 ? (
-          <div className="border border-dashed border-gray-700 rounded-xl p-12 text-center bg-gray-900/50">
+          <div className="dashboard-empty" style={{ margin: '4rem auto', width: '100%', maxWidth: '600px' }}>
             <h3 className="text-xl font-medium mb-2">No flows yet</h3>
             <p className="text-gray-400 mb-6">Create your first visual workflow to get started.</p>
             <button 
@@ -50,9 +51,9 @@ export const FlowsList: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
             {flows.map((flow: any) => (
-              <div key={flow.id} className="bg-[#111111] border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-colors">
+              <div key={flow.id} className="recent-activity-card hover:border-gray-600 transition-colors cursor-default">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-semibold truncate pr-4">{flow.name || 'Untitled Flow'}</h3>
                   <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded-full whitespace-nowrap">
@@ -77,7 +78,6 @@ export const FlowsList: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
   );
 };
 

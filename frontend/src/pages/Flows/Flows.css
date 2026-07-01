@@ -1,0 +1,9 @@
+.flows-dashboard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-self: flex-start; /* This forces it to the top instead of being vertically centered by DashboardLayout */
+  padding-bottom: 2rem;
+}

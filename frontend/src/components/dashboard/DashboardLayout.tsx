@@ -3,10 +3,11 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { HomeView } from '../../pages/dashboard/HomeView';
 import { RunsView } from '../../pages/dashboard/RunsView';
+import { FlowsList } from '../../pages/Flows';
 import './dashboard.css';
 
-export const DashboardLayout: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('Home');
+export const DashboardLayout: React.FC<{ initialTab?: string }> = ({ initialTab = 'Home' }) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   return (
     <div className="dashboard-root" style={{
@@ -44,7 +45,8 @@ export const DashboardLayout: React.FC = () => {
         }}>
           {activeTab === 'Home' && <HomeView />}
           {activeTab === 'Runs' && <RunsView />}
-          {activeTab !== 'Home' && activeTab !== 'Runs' && (
+          {activeTab === 'Flows' && <FlowsList />}
+          {activeTab !== 'Home' && activeTab !== 'Runs' && activeTab !== 'Flows' && (
             <div className="dashboard-empty">
               <h1>{activeTab}</h1>
               <p>This section is under construction.</p>
