@@ -39,6 +39,16 @@ const worker = new bullmq_1.Worker('task-queue', async (job) => {
     catch (error) {
         await (0, db_service_1.updateTaskStatus)(taskId, 'FAILED', null, error.message);
         console.error(`Job ${job.id} failed:`, error.message);
+        const step = await db_service_1.prisma.workflowNode.findUnique({
+            where: { id: taskId },
+            select: { workflowId: true }
+        });
+        if (step?.workflowId) {
+            const workflowQueue = new bullmq_1.Queue('workflow-queue', { connection: redis });
+            await workflowQueue.add('continue-workflow', {
+                workflowId: step.workflowId
+            });
+        }
         throw error;
     }
 }, { connection: redis, concurrency: 5 });

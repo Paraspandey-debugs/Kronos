@@ -100,6 +100,17 @@ async function checkAndTriggerNextSteps(workflowId) {
     for (const step of readySteps) {
         await executeStep(workflowId, step.id);
     }
+    // Check if any step failed
+    const anyFailed = allSteps.some(step => step.status === 'FAILED');
+    if (anyFailed) {
+        if (workflow.status !== 'FAILED') {
+            await prisma.workflow.update({
+                where: { id: workflowId },
+                data: { status: 'FAILED' },
+            });
+        }
+        return;
+    }
     // Check if all steps are done
     const allCompleted = allSteps.every(step => step.status === 'COMPLETED');
     if (allCompleted && workflow.status !== 'COMPLETED') {

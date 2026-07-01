@@ -1,21 +1,21 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "postgresql"
+}
+
 model Task {
-  id          String   @id @default(uuid())
-  agentType   String
-  payload     Json
-  priority    String   @default("normal")
-  status      String   @default("PENDING")
-  result      Json?
-  error       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  agentType String
+  payload   Json
+  priority  String   @default("normal")
+  status    String   @default("PENDING")
+  result    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
@@ -23,57 +23,55 @@ model User {
   clerkId   String     @unique
   email     String?
   createdAt DateTime   @default(now())
-  workflows Workflow[]
   flows     Flow[]
+  workflows Workflow[]
 }
 
 model Flow {
   id          String     @id @default(uuid())
   userId      String
-  user        User       @relation(fields: [userId], references: [id])
   name        String
   description String?
   nodes       Json
   edges       Json
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id])
   workflows   Workflow[]
 }
 
 model Workflow {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  flowId    String?
-  flow      Flow?    @relation(fields: [flowId], references: [id])
-  name      String   @default("Untitled Workflow")
-  status    String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED, DRAFT
+  status    String         @default("PENDING")
   error     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  flowId    String?
+  name      String         @default("Untitled Workflow")
+  flow      Flow?          @relation(fields: [flowId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
   nodes     WorkflowNode[]
 }
 
 model WorkflowNode {
-  id          String   @id @default(uuid())
-  workflowId  String
-  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-
-  positionX   Float?
-  positionY   Float?
-
-  type        String   // "START", "AGENT", "CONDITION", "END"
-  agentType   String?  // Only for "AGENT" nodes (scout, compressor, etc.)
-  
-  config      Json     // Stores payload, conditions, or webhook configs
-  stepIndex   Int      // Order of execution (0, 1, 2...)
-  
-  status      String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
-  result      Json?
-  error       String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  workflowId String
+  positionX  Float?
+  positionY  Float?
+  type       String
+  agentType  String?
+  config     Json
+  stepIndex  Int
+  dependsOn  String[] @default([])
+  status     String   @default("PENDING")
+  result     Json?
+  error      String?
+  startedAt  DateTime?
+  completedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
 
 model AgentTemplate {
@@ -83,8 +81,8 @@ model AgentTemplate {
   description    String?
   icon           String?
   defaultPayload Json     @default("{}")
-  configSchema   Json?
-  outputSchema   Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  configSchema   Json?
+  outputSchema   Json?
 }
