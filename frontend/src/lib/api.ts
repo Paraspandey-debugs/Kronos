@@ -52,3 +52,9 @@ export const runFlow = async (id: string, token: string) => {
   if (!res.ok) throw new Error('Failed to run flow');
   return res.json();
 };
+
+export const fetchAgentTemplates = async (token: string) => {
+  const res = await fetch('/api/v1/agents/templates', { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error('Failed to fetch agent templates');
+  return res.json();
+};

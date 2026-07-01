@@ -71,22 +71,11 @@ export const FlowEditorPage: React.FC = () => {
 
   return (
     <div className="h-screen w-full flex flex-col">
-      <div className="flex justify-between items-center bg-gray-900 p-4 border-b border-gray-800 text-white">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/flows')} className="text-gray-400 hover:text-white">
-            ← Back to Flows
-          </button>
-          <h1 className="text-lg font-semibold">{isNew ? 'New Flow' : flow?.name || 'Untitled Flow'}</h1>
-        </div>
-        {saveMutation.isPending && <span className="text-sm text-gray-400">Saving...</span>}
-      </div>
-      <div className="flex-1 relative">
-        <FlowEditor 
-          initialData={flow ? { nodes: flow.nodes, edges: flow.edges } : undefined} 
-          onSaveFlow={handleSave} 
-          onRunFlow={handleRun} 
-        />
-      </div>
+      <FlowEditor 
+        initialData={flow ? { nodes: flow.nodes, edges: flow.edges } : undefined} 
+        onSaveFlow={handleSave} 
+        onRunFlow={handleRun} 
+      />
     </div>
   );
 };

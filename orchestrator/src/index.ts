@@ -10,7 +10,9 @@ function resolvePayload(payload: any, context: Record<string, any>): any {
     const path = payload.slice(1).split('.');
     let current = context;
     for (const key of path) {
-      if (current === undefined || current === null) return undefined;
+      if (current === undefined || current === null) {
+        throw new Error(`Unresolved template reference: {{${payload}}}`);
+      }
       current = current[key];
     }
     return current;
@@ -50,21 +52,21 @@ const orchestrator = new Worker(
 
 async function processWorkflow(workflowId: string) {
   try {
-    // 1. Fetch the workflow and its steps
+    // 1. Fetch the workflow and its nodes
     const workflow = await prisma.workflow.findUnique({
       where: { id: workflowId },
-      include: { steps: true }
+      include: { nodes: { orderBy: { stepIndex: 'asc' } } }
     });
 
     if (!workflow) {
       throw new Error(`Workflow ${workflowId} not found`);
     }
 
-    // 2. Find the first step that is still PENDING
-    const nextStep = workflow.steps.find((step: any) => step.status === 'PENDING');
+    // 2. Find the first node that is still PENDING
+    const nextNode = workflow.nodes.find((n: any) => n.status === 'PENDING');
 
-    if (!nextStep) {
-      // No more steps = workflow is complete
+    if (!nextNode) {
+      // No more nodes = workflow is complete
       await prisma.workflow.update({
         where: { id: workflowId },
         data: { status: 'COMPLETED' }
@@ -73,33 +75,62 @@ async function processWorkflow(workflowId: string) {
       return { status: 'COMPLETED' };
     }
 
-    // Build context from completed steps
+    // Build context from completed nodes
     const context: Record<string, any> = {};
-    for (const step of workflow.steps) {
-      if (step.status === 'COMPLETED' && step.result) {
-        context[`step_${(step as any).stepIndex}`] = step.result;
+    for (const node of workflow.nodes) {
+      if (node.status === 'COMPLETED' && node.result) {
+        context[`step_${node.stepIndex}`] = node.result;
       }
     }
 
-    // Resolve the payload dynamically
-    const resolvedPayload = resolvePayload(nextStep.payload, context);
+    if (nextNode.type === 'START') {
+      const payload = (nextNode.config as any)?.payload || {};
+      
+      await prisma.workflowNode.update({
+        where: { id: nextNode.id },
+        data: { 
+          status: 'COMPLETED',
+          result: payload 
+        }
+      });
+      console.log(`Orchestrator processed START node ${nextNode.id}.`);
+      
+      const workflowQueue = new Queue('workflow-queue', { connection: redis as any });
+      await workflowQueue.add('continue-workflow', { workflowId });
+      
+      return { status: 'CONTINUED' };
+    } 
+    else if (nextNode.type === 'AGENT') {
+      const resolvedPayload = resolvePayload((nextNode.config as any)?.payload, context);
 
-    // 3. Push this step to the task queue for Engine B (Executor)
-    const taskQueue = new Queue('task-queue', { connection: redis as any });
-    await taskQueue.add('execute-task', {
-      taskId: nextStep.id,
-      agentType: nextStep.agentType,
-      payload: resolvedPayload
-    });
+      const taskQueue = new Queue('task-queue', { connection: redis as any });
+      await taskQueue.add('execute-task', {
+        taskId: nextNode.id,
+        agentType: nextNode.agentType,
+        payload: resolvedPayload
+      });
 
-    // 4. Mark the step as RUNNING
-    await prisma.step.update({
-      where: { id: nextStep.id },
-      data: { status: 'RUNNING' }
-    });
+      await prisma.workflowNode.update({
+        where: { id: nextNode.id },
+        data: { status: 'RUNNING' }
+      });
 
-    console.log(`Orchestrator pushed step ${nextStep.id} to Executor.`);
-    return { status: 'STEP_QUEUED', stepId: nextStep.id };
+      console.log(`Orchestrator pushed AGENT node ${nextNode.id} to Executor.`);
+      return { status: 'STEP_QUEUED', stepId: nextNode.id };
+    }
+    else if (nextNode.type === 'END') {
+      await prisma.workflowNode.update({
+        where: { id: nextNode.id },
+        data: { status: 'COMPLETED' }
+      });
+      await prisma.workflow.update({
+        where: { id: workflowId },
+        data: { status: 'COMPLETED' }
+      });
+      console.log(`Workflow ${workflowId} reached END node and completed!`);
+      return { status: 'COMPLETED' };
+    }
+
 
   } catch (error: any) {
     console.error(`Orchestrator failed for ${workflowId}:`, error.message);

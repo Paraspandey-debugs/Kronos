@@ -1,28 +1,32 @@
 import { prisma } from '../models';
 
 export const databaseService = {
-  createWorkflow: async (data: { steps: Array<{ agentType: string; payload: any }>; userId: string }) => {
+  createWorkflow: async (data: { name?: string; nodes: Array<{ type: string; agentType?: string; config: any; positionX?: number; positionY?: number }>; userId: string }) => {
     return await prisma.workflow.create({
       data: {
         userId: data.userId,
+        name: data.name || "Untitled Workflow",
         status: 'PENDING',
-        steps: {
-          create: data.steps.map((step, index) => ({
-            agentType: step.agentType,
-            payload: step.payload,
+        nodes: {
+          create: data.nodes.map((node, index) => ({
+            type: node.type,
+            agentType: node.agentType,
+            config: node.config,
+            positionX: node.positionX,
+            positionY: node.positionY,
             status: 'PENDING',
             stepIndex: index
           }))
         }
       },
-      include: { steps: true }
+      include: { nodes: true }
     });
   },
   
   getWorkflowById: async (id: string) => {
     return await prisma.workflow.findUnique({
       where: { id },
-      include: { steps: true }
+      include: { nodes: true }
     });
   },
   
@@ -33,7 +37,7 @@ export const databaseService = {
         userId,
         ...(status ? { status } : {})
       },
-      include: { steps: true },
+      include: { nodes: true },
       orderBy: orderBy || { createdAt: 'desc' },
       ...(take ? { take } : {})
     });

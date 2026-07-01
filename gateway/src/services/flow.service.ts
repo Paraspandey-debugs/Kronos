@@ -26,7 +26,7 @@ function topologicalSort(nodes: any[], edges: any[]) {
   while (queue.length > 0) {
     const current = queue.shift()!;
     const node = nodeMap.get(current);
-    if (node && node.type !== 'start' && node.type !== 'end') {
+    if (node) {
       sorted.push(node);
     }
     
@@ -90,14 +90,30 @@ export const flowService = {
       data: {
         userId: flow.userId,
         flowId: flow.id,
+        name: flow.name,
         status: 'PENDING',
-        steps: {
-          create: sorted.map((node, index) => ({
-            stepIndex: index,
-            agentType: node.type,
-            payload: node.data?.payload || {},
-            status: 'PENDING',
-          })),
+        nodes: {
+          create: sorted.map((node, index) => {
+            let nodeType = 'AGENT';
+            let agentType: string | undefined = node.type;
+            if (node.type === 'start') {
+              nodeType = 'START';
+              agentType = undefined;
+            } else if (node.type === 'end') {
+              nodeType = 'END';
+              agentType = undefined;
+            }
+
+            return {
+              stepIndex: index,
+              type: nodeType,
+              agentType: agentType,
+              config: { payload: node.data?.payload || {} },
+              positionX: node.position?.x,
+              positionY: node.position?.y,
+              status: 'PENDING',
+            };
+          }),
         },
       },
     });

@@ -8,7 +8,7 @@ export async function updateTaskStatus(
   result?: any,
   error?: string
 ) {
-  return prisma.step.update({
+  return prisma.workflowNode.update({
     where: { id },
     data: {
       status,

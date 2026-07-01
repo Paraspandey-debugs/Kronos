@@ -8,25 +8,28 @@ import {
   Background,
   BackgroundVariant,
   Controls,
-  MiniMap,
   useReactFlow,
 } from '@xyflow/react';
 import type { Connection, Edge, Node, NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import './FlowEditor.css';
 
 import { nodeTypes } from './nodes';
 import { edgeTypes } from './edges';
-import Sidebar from './Sidebar';
 import PropertiesPanel from './PropertiesPanel';
 import Toolbar from './Toolbar';
 import { useAutoLayout } from './hooks/useAutoLayout';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@clerk/clerk-react';
+import { fetchAgentTemplates } from '../../lib/api';
+import Sidebar from './Sidebar';
 
 const initialNodes: Node[] = [
   {
     id: 'start-1',
     type: 'start',
     position: { x: 250, y: 50 },
-    data: { label: 'Start' },
+    data: { label: 'Start', payload: JSON.stringify({ target: "https://github.com" }, null, 2) },
   }
 ];
 
@@ -42,6 +45,15 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ initialData, onSaveFlow, o
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const { screenToFlowPosition } = useReactFlow();
   const { layout } = useAutoLayout();
+  const { getToken } = useAuth();
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['agent-templates'],
+    queryFn: async () => {
+      const token = await getToken();
+      return fetchAgentTemplates(token || '');
+    }
+  });
 
   useEffect(() => {
     if (initialData) {
@@ -88,11 +100,16 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ initialData, onSaveFlow, o
         y: event.clientY,
       });
 
+      const template = templates.find((t: any) => t.type === type);
+
       const newNode: Node = {
         id: `${type}-${Date.now()}`,
         type,
         position,
-        data: { label: type.charAt(0).toUpperCase() + type.slice(1) },
+        data: { 
+          label: template?.label || type.charAt(0).toUpperCase() + type.slice(1),
+          payload: template ? JSON.stringify(template.defaultPayload, null, 2) : "{}"
+        },
       };
       setNodes((nds) => nds.concat(newNode));
     },
@@ -109,11 +126,16 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ initialData, onSaveFlow, o
       const midX = (sourceNode.position.x + targetNode.position.x) / 2;
       const midY = (sourceNode.position.y + targetNode.position.y) / 2;
 
+      const template = templates.find((t: any) => t.type === 'scout');
+
       const newNode: Node = {
         id: `scout-${Date.now()}`,
         type: 'scout',
         position: { x: midX, y: midY },
-        data: { label: 'Inserted Step' },
+        data: { 
+          label: template?.label || 'Inserted Step', 
+          payload: template ? JSON.stringify(template.defaultPayload, null, 2) : "{}" 
+        },
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -129,19 +151,29 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ initialData, onSaveFlow, o
     [nodes, setNodes, setEdges]
   );
 
+  const handleNodeDelete = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+    if (selectedNode?.id === nodeId) {
+      setSelectedNode(null);
+    }
+  }, [setNodes, setEdges, selectedNode]);
+
   return (
-    <div className="flex h-screen w-full bg-white font-sans">
-      <Sidebar />
-      <div className="flex-1 relative h-full">
-        <Toolbar 
-          onLayout={() => layout(nodes, edges, setNodes, setEdges)}
-          onSave={() => onSaveFlow?.(nodes, edges)}
-          onRun={() => onRunFlow?.()}
-        />
+    <div className="flex flex-col h-full w-full bg-[#050505] font-sans text-white overflow-hidden">
+      <Toolbar 
+        onLayout={() => layout(nodes, edges, setNodes, setEdges)}
+        onSave={() => onSaveFlow?.(nodes, edges)}
+        onRun={() => onRunFlow?.()}
+      />
+      
+      <main className="flex-1 flex overflow-hidden">
+        <Sidebar templates={templates} />
         
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
+        <section className="flex-1 relative overflow-hidden bg-[#050505]">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -156,20 +188,25 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ initialData, onSaveFlow, o
           snapToGrid
           snapGrid={[15, 15]}
         >
-          <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-          <Controls />
-          <MiniMap />
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#333" />
+          <Controls className="!bg-[#0a0a0a] !border-neutral-800 !fill-neutral-400" />
         </ReactFlow>
-      </div>
+      </section>
 
-      <PropertiesPanel node={selectedNode} onUpdate={(updated) => {
-        setNodes((nds) => nds.map((n) => 
-          n.id === updated.id ? updated : n
-        ));
-        if (selectedNode?.id === updated.id) {
-          setSelectedNode(updated);
-        }
-      }} />
+      <PropertiesPanel 
+          node={selectedNode} 
+          nodes={nodes}
+          edges={edges}
+          templates={templates}
+          onUpdate={(updated) => {
+            setNodes((nds) => nds.map((n) => n.id === updated.id ? updated : n));
+            if (selectedNode?.id === updated.id) {
+              setSelectedNode(updated);
+            }
+          }} 
+          onDelete={handleNodeDelete}
+        />
+      </main>
     </div>
   );
 };

@@ -1,0 +1,99 @@
+.flow-panel {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.flow-canvas-bg {
+    background-color: var(--bg-main);
+}
+
+.bg-dots {
+    background-image: radial-gradient(circle, #333 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* Node Base Styles */
+.flow-node {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.75rem;
+    border: 2px solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    background-color: rgba(5, 5, 5, 0.8);
+    transition: all 0.2s ease;
+}
+
+.flow-node.selected {
+    box-shadow: 0 0 20px var(--node-color-alpha);
+    border-color: var(--node-color-light);
+}
+
+.flow-node:not(.selected) {
+    border-color: var(--node-color);
+    box-shadow: 0 0 15px var(--node-color-alpha-low);
+}
+
+.flow-node-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--node-color);
+}
+
+.flow-node-label {
+    position: absolute;
+    bottom: -1.5rem;
+    font-size: 10px;
+    font-family: monospace;
+    white-space: nowrap;
+    color: var(--node-color);
+}
+
+/* Handles */
+.flow-handle {
+    width: 1rem !important;
+    height: 1rem !important;
+    background-color: var(--bg-main) !important;
+    border: 2px solid var(--node-color) !important;
+    border-radius: 9999px !important;
+}
+
+.flow-handle.left { left: -0.5rem !important; }
+.flow-handle.right { right: -0.5rem !important; }
+
+/* Colors Variables for specific nodes */
+.node-green { 
+    --node-color: #22c55e;
+    --node-color-light: #4ade80;
+    --node-color-alpha: rgba(34, 197, 94, 0.3);
+    --node-color-alpha-low: rgba(34, 197, 94, 0.1);
+}
+.node-blue { 
+    --node-color: #3b82f6;
+    --node-color-light: #60a5fa;
+    --node-color-alpha: rgba(59, 130, 246, 0.3);
+    --node-color-alpha-low: rgba(59, 130, 246, 0.1);
+}
+.node-amber { 
+    --node-color: #f59e0b;
+    --node-color-light: #fbbf24;
+    --node-color-alpha: rgba(245, 158, 11, 0.3);
+    --node-color-alpha-low: rgba(245, 158, 11, 0.1);
+}
+.node-purple { 
+    --node-color: #a855f7;
+    --node-color-light: #c084fc;
+    --node-color-alpha: rgba(168, 85, 247, 0.3);
+    --node-color-alpha-low: rgba(168, 85, 247, 0.1);
+}
+.node-rose { 
+    --node-color: #f43f5e;
+    --node-color-light: #fb7185;
+    --node-color-alpha: rgba(244, 63, 94, 0.3);
+    --node-color-alpha-low: rgba(244, 63, 94, 0.1);
+}

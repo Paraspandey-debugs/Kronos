@@ -28,7 +28,7 @@ const worker = new Worker(
       await updateTaskStatus(taskId, 'COMPLETED', result);
       console.log(`Job ${job.id} finished successfully.`);
       
-      const step = await prisma.step.findUnique({
+      const step = await prisma.workflowNode.findUnique({
         where: { id: taskId },
         select: { workflowId: true }
       });
