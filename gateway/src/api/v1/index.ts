@@ -8,7 +8,7 @@ import { authMiddleware, requireAuthMiddleware } from '../../middleware/clerk';
 const router = Router();
 
 router.use('/health', healthRoutes);
-router.use('/workflows', authMiddleware, workflowRoutes);
+router.use('/workflows', requireAuthMiddleware, workflowRoutes);
 router.use('/flows', requireAuthMiddleware, flowRoutes);
 router.use('/agents', authMiddleware, agentRoutes);
 

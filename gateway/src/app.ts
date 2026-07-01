@@ -19,6 +19,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
+// Debug middleware to log auth header
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/v1')) {
+    console.log(`[AUTH DEBUG] ${req.method} ${req.path}`);
+    console.log(`[AUTH DEBUG] Headers:`, req.headers.authorization ? 'Bearer [HIDDEN]' : 'MISSING');
+  }
+  next();
+});
+
 // Routes
 app.use('/api/v1', v1Routes);
 
