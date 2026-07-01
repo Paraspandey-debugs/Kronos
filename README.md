@@ -11,6 +11,9 @@ To reference data from a prior step, use the `$step_<INDEX>.path` syntax in your
 
 **Example Workflow:**
 
+<img width="1919" height="922" alt="image" src="https://github.com/user-attachments/assets/3fd63f8c-a34e-4e9c-9b64-6c83d6a0898e" />
+
+
 ```json
 {
   "steps": [
